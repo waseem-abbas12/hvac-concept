@@ -1,0 +1,12 @@
+{
+  "name": "choiceair-hvac-concept",
+  "version": "1.0.0",
+  "description": "Choice Aire HVAC Concept - High-Converting Enterprise Trade Platform",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "keywords": ["hvac", "trade-client", "conversion-rate-optimization", "choice-aire"],
+  "author": "Antigravity Growth Agency",
+  "license": "ISC"
+}
