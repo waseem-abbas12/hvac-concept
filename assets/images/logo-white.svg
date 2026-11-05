@@ -1,7 +1,7 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 70" width="320" height="70" fill="none">
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 64" width="340" height="64" fill="none">
   <defs>
     <linearGradient id="warmFlameW" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#FF453A" />
+      <stop offset="0%" stop-color="#FF375F" />
       <stop offset="50%" stop-color="#FF9F0A" />
       <stop offset="100%" stop-color="#FFD60A" />
     </linearGradient>
@@ -10,37 +10,37 @@
       <stop offset="50%" stop-color="#0A84FF" />
       <stop offset="100%" stop-color="#5E5CE6" />
     </linearGradient>
-    <filter id="subtleGlowW" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.3" />
+    <filter id="subtleGlowW" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3" />
     </filter>
   </defs>
 
-  <!-- Thermocline Dual-Wing Icon -->
-  <g transform="translate(6, 7)" filter="url(#subtleGlowW)">
+  <!-- Large Thermocline Dual-Wing Icon -->
+  <g transform="translate(4, 4)" filter="url(#subtleGlowW)">
     <!-- Cooling Flow Arc -->
-    <path d="M 28 6 C 14 6, 4 17, 4 30 C 4 43, 14 54, 28 54 C 23 47, 20 39, 20 30 C 20 21, 23 13, 28 6 Z" fill="url(#coolFrostW)" />
+    <path d="M 28 4 C 13 4, 2 16, 2 30 C 2 44, 13 56, 28 56 C 22 48, 19 39, 19 30 C 19 21, 22 12, 28 4 Z" fill="url(#coolFrostW)" />
     <!-- Center Air Vortex -->
-    <path d="M 28 12 C 22 17, 18 23, 18 30 C 18 37, 22 43, 28 48 C 34 43, 38 37, 38 30 C 38 23, 34 17, 28 12 Z" fill="#64D2FF" opacity="0.95" />
+    <path d="M 28 10 C 21 16, 17 22, 17 30 C 17 38, 21 44, 28 50 C 35 44, 39 38, 39 30 C 39 22, 35 16, 28 10 Z" fill="#64D2FF" opacity="0.95" />
     <!-- Heating Flame Arc -->
-    <path d="M 28 6 C 34 13, 37 21, 37 30 C 37 39, 34 47, 28 54 C 42 54, 52 43, 52 30 C 52 17, 42 6, 28 6 Z" fill="url(#warmFlameW)" />
-    <!-- Dynamic Air Stream Core -->
+    <path d="M 28 4 C 34 12, 37 21, 37 30 C 37 39, 34 48, 28 56 C 43 56, 54 44, 54 30 C 54 16, 43 4, 28 4 Z" fill="url(#warmFlameW)" />
+    <!-- Core Spark -->
     <circle cx="28" cy="30" r="4.5" fill="#FFFFFF" />
   </g>
 
-  <!-- Typography -->
-  <g transform="translate(70, 10)">
-    <!-- Brand Name -->
-    <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif" font-weight="900" font-size="31" letter-spacing="-0.5" fill="#FFFFFF">
+  <!-- Large Punchy Typography (White for Dark Backgrounds) -->
+  <g transform="translate(68, 6)">
+    <!-- Brand Name (Large & Bold) -->
+    <text x="0" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Montserrat', 'Inter', sans-serif" font-weight="900" font-size="40" letter-spacing="-0.5" fill="#FFFFFF">
       PRIME<tspan fill="#64D2FF">AIR</tspan>
     </text>
     
     <!-- Subtitle -->
-    <text x="1.5" y="47" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif" font-weight="700" font-size="9.5" letter-spacing="3.2" fill="#98A2B3">
+    <text x="2" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="11.5" letter-spacing="4" fill="#94A3B8">
       HEATING &amp; COOLING
     </text>
 
-    <!-- Accent Micro Badge -->
-    <rect x="180" y="16" width="56" height="18" rx="4" fill="#0A84FF" fill-opacity="0.3" stroke="#64D2FF" stroke-width="0.75" />
-    <text x="208" y="28.5" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="9" letter-spacing="1" fill="#64D2FF">PRO</text>
+    <!-- Micro Badge -->
+    <rect x="228" y="14" width="44" height="22" rx="5" fill="#0A84FF" fill-opacity="0.3" stroke="#64D2FF" stroke-width="1.2" />
+    <text x="250" y="29" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="11" letter-spacing="1" fill="#64D2FF">PRO</text>
   </g>
 </svg>

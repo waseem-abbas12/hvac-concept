@@ -1,0 +1,113 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 380" width="540" height="380" fill="none">
+  <defs>
+    <radialGradient id="radarGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0066FF" stop-opacity="0.25" />
+      <stop offset="40%" stop-color="#0066FF" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#0B132B" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="gridLines" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#334155" stop-opacity="0.1" />
+    </linearGradient>
+    <filter id="beaconGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#00E5FF" flood-opacity="0.8" />
+    </filter>
+    <filter id="hubGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#FF9500" flood-opacity="0.9" />
+    </filter>
+  </defs>
+
+  <!-- Background Box -->
+  <rect width="540" height="380" rx="16" fill="#0A0F1D" stroke="#1E293B" stroke-width="1.5" />
+
+  <!-- Radar Grid Background -->
+  <circle cx="270" cy="195" r="160" fill="url(#radarGlow)" />
+  <circle cx="270" cy="195" r="160" stroke="#1E3A8A" stroke-width="1" stroke-dasharray="4 4" opacity="0.6" />
+  <circle cx="270" cy="195" r="115" stroke="#0284C7" stroke-width="1.2" opacity="0.5" />
+  <circle cx="270" cy="195" r="65" stroke="#00E5FF" stroke-width="1.5" opacity="0.7" />
+
+  <!-- Crosshairs -->
+  <line x1="270" y1="35" x2="270" y2="355" stroke="#1E293B" stroke-width="1" stroke-dasharray="2 4" />
+  <line x1="110" y1="195" x2="430" y2="195" stroke="#1E293B" stroke-width="1" stroke-dasharray="2 4" />
+
+  <!-- Top Status Bar -->
+  <rect x="18" y="14" width="504" height="36" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1" />
+  <circle cx="34" cy="32" r="4.5" fill="#10B981">
+    <animate attributeName="opacity" values="1;0.4;1" dur="1.8s" repeatCount="indefinite" />
+  </circle>
+  <text x="48" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="11.5" fill="#F8FAFC" letter-spacing="0.5">
+    24/7 METRO DISPATCH RADAR • 16 UNITS ACTIVE ON-CALL
+  </text>
+  <rect x="420" y="21" width="90" height="22" rx="4" fill="#0066FF" fill-opacity="0.2" stroke="#0066FF" stroke-width="1" />
+  <text x="465" y="35" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="800" font-size="10" fill="#38BDF8">
+    ZERO TRAVEL FEE
+  </text>
+
+  <!-- Central Dispatch Hub (Headquarters) -->
+  <g filter="url(#hubGlow)">
+    <circle cx="270" cy="195" r="8" fill="#FF9500" />
+    <circle cx="270" cy="195" r="16" fill="none" stroke="#FF9500" stroke-width="1.5" opacity="0.6">
+      <animate attributeName="r" values="8;24;8" dur="2.5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.8;0;0.8" dur="2.5s" repeatCount="indefinite" />
+    </circle>
+  </g>
+  <rect x="208" y="152" width="124" height="22" rx="4" fill="#0F172A" stroke="#FF9500" stroke-width="1" opacity="0.95" />
+  <text x="270" y="167" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="800" font-size="10" fill="#FFB74D">
+    ★ PRIMEAIR CENTRAL HQ
+  </text>
+
+  <!-- Active Vans & Service Nodes -->
+  <!-- Van 1: North Suburbs -->
+  <g filter="url(#beaconGlow)">
+    <circle cx="230" cy="115" r="5" fill="#00E5FF" />
+  </g>
+  <rect x="175" y="90" width="110" height="18" rx="4" fill="#0B132B" stroke="#00E5FF" stroke-width="0.75" opacity="0.9" />
+  <text x="230" y="103" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="700" font-size="8.5" fill="#38BDF8">
+    Van #4 · North Suburbs (22m)
+  </text>
+
+  <!-- Van 2: East Valley -->
+  <g filter="url(#beaconGlow)">
+    <circle cx="355" cy="165" r="5" fill="#00E5FF" />
+  </g>
+  <rect x="305" y="140" width="100" height="18" rx="4" fill="#0B132B" stroke="#00E5FF" stroke-width="0.75" opacity="0.9" />
+  <text x="355" y="153" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="700" font-size="8.5" fill="#38BDF8">
+    Van #7 · East Valley (18m)
+  </text>
+
+  <!-- Van 3: South Commercial District -->
+  <g filter="url(#beaconGlow)">
+    <circle cx="295" cy="275" r="5" fill="#00E5FF" />
+  </g>
+  <rect x="238" y="286" width="114" height="18" rx="4" fill="#0B132B" stroke="#00E5FF" stroke-width="0.75" opacity="0.9" />
+  <text x="295" y="299" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="700" font-size="8.5" fill="#38BDF8">
+    Van #11 · Commercial RTU
+  </text>
+
+  <!-- Van 4: West Residential -->
+  <g filter="url(#beaconGlow)">
+    <circle cx="170" cy="225" r="5" fill="#00E5FF" />
+  </g>
+  <rect x="115" y="236" width="110" height="18" rx="4" fill="#0B132B" stroke="#00E5FF" stroke-width="0.75" opacity="0.9" />
+  <text x="170" y="249" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="700" font-size="8.5" fill="#38BDF8">
+    Van #9 · West Suburbs (15m)
+  </text>
+
+  <!-- Bottom Legend -->
+  <rect x="18" y="325" width="504" height="42" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1" />
+  
+  <circle cx="45" cy="346" r="4" fill="#00E5FF" />
+  <text x="56" y="349" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="700" font-size="10" fill="#94A3B8">
+    Zone 1: Priority (&lt;30m)
+  </text>
+
+  <circle cx="210" cy="346" r="4" fill="#0284C7" />
+  <text x="221" y="349" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="700" font-size="10" fill="#94A3B8">
+    Zone 2: Metro (&lt;45m)
+  </text>
+
+  <circle cx="365" cy="346" r="4" fill="#64748B" />
+  <text x="376" y="349" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="700" font-size="10" fill="#94A3B8">
+    Zone 3: Outer Counties (&lt;60m)
+  </text>
+</svg>

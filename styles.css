@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    Choice Aire â€” Steve Jobs-Grade Attention-to-Detail Design System (2026)
    Matches the Multi-Page High-Converting HVAC Platform Blueprint
    Typography: Plus Jakarta Sans (Headings) + Inter (Body)
@@ -388,8 +388,10 @@ ul {
 }
 
 .logo-wrap img {
-  height: 44px;
+  height: 52px;
   width: auto;
+  max-width: 250px;
+  object-fit: contain;
 }
 
 .nav-menu {
@@ -2703,7 +2705,7 @@ ul {
   }
 
   .logo-wrap img {
-    height: 38px;
+    height: 46px;
     width: auto;
   }
 
@@ -3282,7 +3284,7 @@ ul {
   }
 
   .logo-wrap img {
-    height: 38px;
+    height: 44px;
     width: auto;
   }
 
@@ -3692,13 +3694,15 @@ ul {
    PrimeAir Dynamic Pitch Widget & Universal Logo Styling
    ========================================================================== */
 .logo-wrap img, .logo img {
-  max-height: 52px;
+  height: 52px;
+  max-height: 56px;
   width: auto;
   object-fit: contain;
 }
 
 .footer-logo {
-  max-height: 48px;
+  height: 48px;
+  max-height: 52px;
   width: auto;
   object-fit: contain;
 }

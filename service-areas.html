@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HVAC Service Areas in Akron, Canton & Metro Area | PrimeAir</title>
+  <title>Metropolitan HVAC Service Coverage Areas | PrimeAir</title>
   <meta name="description" content="PrimeAir serves Metro Area and surrounding regional counties with 24/7 heating, AC, and commercial HVAC services. Fast local dispatch. Call (888) 555-HVAC.">
   <link rel="canonical" href="https://hvac-concept-mauve.vercel.app/service-areas.html">
   
@@ -24,16 +24,16 @@
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "100 Metro Parkway, Suite 400",
-      "addressLocality": "Akron",
+      "addressLocality": "Metropolitan Hub",
       "addressRegion": "OH",
       "postalCode": "44312",
       "addressCountry": "US"
     },
     "areaServed": [
-      {"@type": "AdministrativeArea", "name": "Summit County, OH"},
-      {"@type": "AdministrativeArea", "name": "Stark County, OH"},
-      {"@type": "AdministrativeArea", "name": "Portage County, OH"},
-      {"@type": "AdministrativeArea", "name": "Medina County, OH"}
+      {"@type": "AdministrativeArea", "name": "Central Metro Zone, OH"},
+      {"@type": "AdministrativeArea", "name": "North Regional Zone, OH"},
+      {"@type": "AdministrativeArea", "name": "East Valley Zone, OH"},
+      {"@type": "AdministrativeArea", "name": "West Regional Zone, OH"}
     ]
   }
   </script>
@@ -147,9 +147,9 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
               Fast 24/7 Dispatch Across 4 Metro Area Counties
             </div>
-            <h1 class="page-hero-title">PrimeAir Service Areas: Summit, Stark, Portage & Medina Counties</h1>
+            <h1 class="page-hero-title">PrimeAir Service Areas: Metropolitan Area & Surrounding Counties</h1>
             <p class="page-hero-sub">
-              Headquartered at 100 Metro Parkway, Suite 400 in Akron, PrimeAir stations fully equipped service vans across the greater Akron-Canton metro area. Whether you need an emergency furnace repair in Canton, high-efficiency AC installation in Hudson, or commercial refrigeration in Medina, we deliver rapid arrival times with zero travel surcharges.
+              Headquartered at 100 Metro Parkway, Suite 400, PrimeAir stations fully equipped service vans across the greater metropolitan service area. Whether you need an emergency furnace repair in our service area, high-efficiency AC installation in our service area, or commercial refrigeration in our service area, we deliver rapid arrival times with zero travel surcharges.
             </p>
             <div class="page-hero-actions">
               <a href="tel:18885554822" class="btn btn-primary btn-lg">Call Local Dispatch: (888) 555-HVAC</a>
@@ -163,10 +163,10 @@
               <p style="font-size: 0.85rem; color: var(--color-text-muted);">Instant Dispatch Verification</p>
             </div>
             <div class="hero-card-body">
-              <form onsubmit="event.preventDefault(); var zip=document.getElementById('checkZip').value; if(zip.match(/^44[0-9]{3}$/)){ document.getElementById('zipResult').style.display='block'; document.getElementById('zipResult').innerHTML='✓ Great news! <strong>' + zip + '</strong> is within our direct PrimeAir 24/7 dispatch zone.'; } else { alert('Please enter a valid Metro Area 5-digit zip code (e.g. 44312).'); }">
+              <form onsubmit="event.preventDefault(); var zip=document.getElementById('checkZip').value.trim(); if(zip.match(/^\d{5}$/)){ document.getElementById('zipResult').style.display='block'; document.getElementById('zipResult').innerHTML='✓ Great news! <strong>' + zip + '</strong> is within our direct PrimeAir 24/7 priority dispatch zone. Average on-call arrival: 35–45 minutes with zero travel surcharge.'; } else { alert('Please enter any valid 5-digit zip code.'); }">
                 <div class="form-group">
                   <label for="checkZip">Enter Your 5-Digit Zip Code</label>
-                  <input type="text" id="checkZip" placeholder="e.g. 44312, 44720, 44221" required>
+                  <input type="text" id="checkZip" placeholder="e.g. 75001, 30301, 90210" required>
                 </div>
                 <button type="submit" class="btn btn-primary btn-full">Verify Coverage & Arrival Time</button>
                 <div id="zipResult" style="display:none; margin-top:1rem; padding:0.85rem; background:#ECFDF5; border:1px solid var(--color-accent); border-radius:var(--radius-sm); font-size:0.88rem; color:var(--color-accent-hover);"></div>
@@ -189,17 +189,17 @@
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2.5rem;">
-          <!-- Summit County -->
+          <!-- Central Metro Zone -->
           <div style="background: var(--color-surface-alt); border-radius: var(--radius-lg); padding: 2.5rem; border: 1px solid var(--color-border); border-top: 4px solid var(--color-primary);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-              <h3 style="font-size: 1.4rem; color: var(--color-primary-dark); margin:0;">Summit County, OH</h3>
+              <h3 style="font-size: 1.4rem; color: var(--color-primary-dark); margin:0;">Central Metro Zone, OH</h3>
               <span style="background:#EEF4FF; color:var(--color-primary); font-size:0.8rem; font-weight:700; padding:0.25rem 0.65rem; border-radius:9999px;">Primary HQ Zone</span>
             </div>
             <p style="font-size: 0.92rem; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 1.25rem;">
-              Home to our Akron headquarters and in-house sheet metal shop on Englewood Ave. We provide immediate 24/7 emergency response throughout Summit County.
+              Home to our Regional Headquarters and in-house sheet metal shop on Metro Parkway We provide immediate 24/7 emergency response throughout Central Metro Zone.
             </p>
             <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-              <span class="service-chip">Akron (HQ)</span>
+              <span class="service-chip">Central Metro HQ</span>
               <span class="service-chip">Cuyahoga Falls</span>
               <span class="service-chip">Fairlawn</span>
               <span class="service-chip">Barberton</span>
@@ -214,18 +214,18 @@
             </div>
           </div>
 
-          <!-- Stark County -->
+          <!-- North Regional Zone -->
           <div style="background: var(--color-surface-alt); border-radius: var(--radius-lg); padding: 2.5rem; border: 1px solid var(--color-border); border-top: 4px solid var(--color-accent);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-              <h3 style="font-size: 1.4rem; color: var(--color-primary-dark); margin:0;">Stark County, OH</h3>
+              <h3 style="font-size: 1.4rem; color: var(--color-primary-dark); margin:0;">North Regional Zone, OH</h3>
               <span style="background:#ECFDF5; color:var(--color-accent); font-size:0.8rem; font-weight:700; padding:0.25rem 0.65rem; border-radius:9999px;">Daily Service Fleet</span>
             </div>
             <p style="font-size: 0.92rem; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 1.25rem;">
-              Dedicated service vans stationed daily in Canton and North Canton for residential HVAC and commercial rooftop maintenance.
+              Dedicated service vans stationed daily in our metropolitan communities for residential HVAC and commercial rooftop maintenance.
             </p>
             <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-              <span class="service-chip">Canton</span>
-              <span class="service-chip">North Canton</span>
+              <span class="service-chip">North Commercial Corridor</span>
+              <span class="service-chip">Executive Residential Estates</span>
               <span class="service-chip">Massillon</span>
               <span class="service-chip">Jackson Township</span>
               <span class="service-chip">Canal Fulton</span>
@@ -237,10 +237,10 @@
             </div>
           </div>
 
-          <!-- Portage County -->
+          <!-- East Valley Zone -->
           <div style="background: var(--color-surface-alt); border-radius: var(--radius-lg); padding: 2.5rem; border: 1px solid var(--color-border); border-top: 4px solid #F59E0B;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-              <h3 style="font-size: 1.4rem; color: var(--color-primary-dark); margin:0;">Portage County, OH</h3>
+              <h3 style="font-size: 1.4rem; color: var(--color-primary-dark); margin:0;">East Valley Zone, OH</h3>
               <span style="background:#FFFBEB; color:#D97706; font-size:0.8rem; font-weight:700; padding:0.25rem 0.65rem; border-radius:9999px;">Full Coverage</span>
             </div>
             <p style="font-size: 0.92rem; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 1.25rem;">
@@ -259,10 +259,10 @@
             </div>
           </div>
 
-          <!-- Medina County -->
+          <!-- West Regional Zone -->
           <div style="background: var(--color-surface-alt); border-radius: var(--radius-lg); padding: 2.5rem; border: 1px solid var(--color-border); border-top: 4px solid #8B5CF6;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-              <h3 style="font-size: 1.4rem; color: var(--color-primary-dark); margin:0;">Medina County, OH</h3>
+              <h3 style="font-size: 1.4rem; color: var(--color-primary-dark); margin:0;">West Regional Zone, OH</h3>
               <span style="background:#F5F3FF; color:#7C3AED; font-size:0.8rem; font-weight:700; padding:0.25rem 0.65rem; border-radius:9999px;">Full Coverage</span>
             </div>
             <p style="font-size: 0.92rem; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 1.25rem;">
@@ -290,10 +290,10 @@
           <div style="max-width: 800px; margin: 0 auto; text-align: center;">
             <span class="section-tag">Climate Expertise</span>
             <h2 style="font-size: 2rem; margin-top: 0.75rem; margin-bottom: 1rem;">
-              Engineered for Metro Area's Extreme Weather Swings
+              Engineered for Severe Seasonal Weather Extremes
             </h2>
             <p style="font-size: 1rem; color: var(--color-text-muted); line-height: 1.7; margin-bottom: 1.75rem;">
-              Between bitter January Lake Erie polar vortexes that drop temperatures below -10°F and muggy 90°F August heatwaves with 85% humidity, Metro Area demands HVAC systems with robust heating capacity and precision multi-stage dehumidification. PrimeAir custom-engineers each system for this exact regional climate.
+              From harsh sub-zero winter freeze storms to oppressive summer heatwaves with extreme humidity, modern homes and commercial facilities demand HVAC systems with dual-stage heating capacity and precision variable-speed dehumidification. PrimeAir custom-engineers each installation for uncompromising reliability.
             </p>
             <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
               <a href="services/furnace-repair.html" class="btn btn-secondary">Winter Heating Solutions</a>
@@ -313,7 +313,7 @@
         <div class="footer-col">
           <img src="assets/images/logo-white.svg" alt="PrimeAir" width="180" height="42" class="footer-logo">
           <p style="font-size: 0.9rem; margin-bottom: 1.25rem;">
-            Akron & Metro Area's trusted heating, cooling, and sheet metal fabrication experts with decades of reliable comfort solutions.
+            Metro Area's trusted heating, cooling, and sheet metal fabrication experts with decades of reliable comfort solutions.
           </p>
           <div style="font-size: 0.85rem; font-weight: 600; color: #FFF;">
             Ohio State License #30725 & #30306
@@ -343,7 +343,7 @@
           </div>
         </div>
         <div class="footer-col">
-          <h4>Akron Headquarters</h4>
+          <h4>Regional Headquarters</h4>
           <div class="footer-contact-row">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             <div><strong>(888) 555-HVAC</strong><br>24/7 Live Emergency Line</div>
@@ -360,7 +360,7 @@
       </div>
       <div class="footer-bottom">
         <div>© 2026 PrimeAir Heating & Cooling. All rights reserved.</div>
-        <div>Serving Summit, Stark, Portage & Medina Counties.</div>
+        <div>Serving Metropolitan Area & Surrounding Counties.</div>
       </div>
     </div>
   </footer>
@@ -393,7 +393,7 @@
       </div>
       <div class="form-group">
         <label for="bookAddress">City / Address</label>
-        <input type="text" id="bookAddress" name="address" placeholder="Akron, Canton, Cuyahoga Falls, etc." required>
+        <input type="text" id="bookAddress" name="address" placeholder="City or Street Address" required>
       </div>
       <div class="form-group">
         <label for="bookNotes">Service Details</label>
@@ -401,7 +401,7 @@
       </div>
       <button type="submit" class="btn btn-primary btn-lg btn-full" id="submitBookingBtn">Submit Request</button>
       <div id="bookingSuccessMsg" style="display:none; padding:1rem; background:var(--color-accent-subtle); border:1px solid var(--color-accent); border-radius:var(--radius-sm); color:var(--color-accent-hover); font-weight:600; text-align:center;">
-        ✓ Request received! An Akron coordinator will call you shortly.
+        ✓ Request received! A PrimeAir dispatch coordinator will call you shortly.
       </div>
     </form>
   </div>
