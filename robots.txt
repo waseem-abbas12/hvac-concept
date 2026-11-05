@@ -1,4 +1,4 @@
-User-agent: *
+﻿User-agent: *
 Allow: /
 
-Sitemap: https://choiceair.vercel.app/sitemap.xml
+Sitemap: https://hvac-concept-mauve.vercel.app/sitemap.xml

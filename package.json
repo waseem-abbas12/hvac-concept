@@ -1,12 +1,12 @@
-{
-  "name": "choiceair-hvac-concept",
+﻿{
+  "name": "primeair-hvac-concept",
   "version": "1.0.0",
-  "description": "Choice Aire HVAC Concept - High-Converting Enterprise Trade Platform",
+  "description": "PrimeAir HVAC Concept - Universal High-Converting Climate Systems Platform",
   "main": "index.html",
   "scripts": {
     "start": "npx serve ."
   },
-  "keywords": ["hvac", "trade-client", "conversion-rate-optimization", "choice-aire"],
+  "keywords": ["hvac", "trade-client", "conversion-rate-optimization", "primeair", "hvac-pitch"],
   "author": "Antigravity Growth Agency",
   "license": "ISC"
 }

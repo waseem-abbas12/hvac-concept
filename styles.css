@@ -1,5 +1,5 @@
-/* ==========================================================================
-   Choice Aire — Steve Jobs-Grade Attention-to-Detail Design System (2026)
+﻿/* ==========================================================================
+   Choice Aire â€” Steve Jobs-Grade Attention-to-Detail Design System (2026)
    Matches the Multi-Page High-Converting HVAC Platform Blueprint
    Typography: Plus Jakarta Sans (Headings) + Inter (Body)
    Colors: Primary #0B5FFF (Trust), Secondary #F59E0B (Energy),
@@ -3686,4 +3686,222 @@ ul {
   color: var(--color-primary);
   background: #EEF4FF;
   transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   PrimeAir Dynamic Pitch Widget & Universal Logo Styling
+   ========================================================================== */
+.logo-wrap img, .logo img {
+  max-height: 52px;
+  width: auto;
+  object-fit: contain;
+}
+
+.footer-logo {
+  max-height: 48px;
+  width: auto;
+  object-fit: contain;
+}
+
+.pa-pitch-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99999;
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+}
+
+.pa-pitch-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(11, 19, 43, 0.92);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pa-pitch-trigger:hover {
+  transform: translateY(-2px) scale(1.02);
+  background: rgba(15, 23, 42, 0.98);
+  border-color: #007AFF;
+  box-shadow: 0 12px 30px -5px rgba(0, 122, 255, 0.35);
+}
+
+.pa-pitch-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: paPulse 2s infinite;
+}
+
+@keyframes paPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.pa-pitch-panel {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  right: 0;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  animation: paSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.pa-pitch-panel.open {
+  display: flex;
+}
+
+@keyframes paSlideUp {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.pa-pitch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 18px 12px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #EDF2F7;
+}
+
+.pa-pitch-header h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.pa-pitch-header p {
+  margin: 3px 0 0;
+  font-size: 0.72rem;
+  color: #64748B;
+  line-height: 1.3;
+}
+
+.pa-pitch-close {
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #94A3B8;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.pa-pitch-close:hover {
+  color: #0F172A;
+}
+
+.pa-pitch-body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pa-pitch-body label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pa-pitch-body label span {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.pa-pitch-body input {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  color: #0F172A;
+  background: #FFFFFF;
+  transition: border-color 0.15s ease;
+}
+
+.pa-pitch-body input:focus {
+  outline: none;
+  border-color: #007AFF;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+}
+
+.pa-pitch-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.pa-pitch-btn {
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.pa-pitch-btn.primary {
+  background: #007AFF;
+  color: #FFFFFF;
+}
+
+.pa-pitch-btn.primary:hover {
+  background: #0062D6;
+}
+
+.pa-pitch-btn.outline {
+  background: #F1F5F9;
+  color: #0F172A;
+  border: 1px solid #E2E8F0;
+}
+
+.pa-pitch-btn.outline:hover {
+  background: #E2E8F0;
+}
+
+.pa-pitch-btn.text {
+  background: transparent;
+  color: #64748B;
+  font-size: 0.75rem;
+  padding: 4px;
+}
+
+.pa-pitch-btn.text:hover {
+  color: #DC2626;
+}
+
+.pa-pitch-status {
+  min-height: 16px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
 }

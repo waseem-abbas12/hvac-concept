@@ -1,10 +1,11 @@
-/**
- * Choice Aire — Steve Jobs-Grade Multi-Page Application Engine
+﻿/**
+ * Choice Aire â€” Steve Jobs-Grade Multi-Page Application Engine
  * Handles Navigation Dropdowns, Mobile Menu, Solution Tabs,
  * FAQ Accordions, Booking Drawers, and Interactive Forms across all routes.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  initPrimeAirPitchEngine();
   initHeader();
   initMobileMenu();
   initSolutionTabs();
@@ -444,5 +445,191 @@ function initStatCounters() {
   }, { threshold: 0.3 });
 
   statNumbers.forEach(num => statsObserver.observe(num));
+}
+
+/* --------------------------------------------------------------------------
+   10. PrimeAir Dynamic Pitch & Client Personalization Engine
+   -------------------------------------------------------------------------- */
+function initPrimeAirPitchEngine() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const qCompany = urlParams.get('company') || urlParams.get('client') || urlParams.get('brand');
+  const qCity = urlParams.get('city') || urlParams.get('metro') || urlParams.get('location');
+  const qPhone = urlParams.get('phone') || urlParams.get('tel');
+  const qPitch = urlParams.get('pitch') || urlParams.get('demo');
+
+  // Persist to sessionStorage so user can navigate all 18 pages in customized state
+  if (qCompany) sessionStorage.setItem('pa_custom_company', qCompany);
+  if (qCity) sessionStorage.setItem('pa_custom_city', qCity);
+  if (qPhone) sessionStorage.setItem('pa_custom_phone', qPhone);
+  if (qPitch !== null) sessionStorage.setItem('pa_pitch_active', qPitch === '1' || qPitch === 'true' ? 'true' : 'false');
+
+  const activeCompany = sessionStorage.getItem('pa_custom_company');
+  const activeCity = sessionStorage.getItem('pa_custom_city');
+  const activePhone = sessionStorage.getItem('pa_custom_phone');
+
+  // 1. Apply customization if values exist
+  if (activeCompany || activeCity || activePhone) {
+    applyCustomBranding(activeCompany, activeCity, activePhone);
+  }
+
+  // 2. Render subtle Pitch Control Toolbar
+  renderPitchToolbar(activeCompany, activeCity, activePhone, qPitch !== null);
+}
+
+function applyCustomBranding(company, city, phone) {
+  if (company) {
+    document.title = document.title.replace(/Choice Aire|PrimeAir/gi, company);
+    document.querySelectorAll('[data-brand], .brand-name').forEach(el => {
+      el.textContent = company;
+    });
+    // Update SVG logos typography if present
+    document.querySelectorAll('svg text tspan, .logo text').forEach(t => {
+      if (t.textContent && t.textContent.includes('AIR')) {
+        // preserve
+      }
+    });
+    // Replace text occurrences in key hero/subhero elements
+    const targets = document.querySelectorAll('.page-hero-title, .hero-title, .section-title, .footer-desc, .announcement-bar');
+    targets.forEach(el => {
+      el.innerHTML = el.innerHTML.replace(/PrimeAir/g, company).replace(/Choice Aire/g, company);
+    });
+  }
+
+  if (city) {
+    document.querySelectorAll('[data-city], .brand-city').forEach(el => {
+      el.textContent = city;
+    });
+    const cityTargets = document.querySelectorAll('.hero-subtitle, .badge, .meta-location, .service-area-pill');
+    cityTargets.forEach(el => {
+      el.innerHTML = el.innerHTML.replace(/Akron, OH|Akron|Northeast Ohio|Summit & Stark/g, city);
+    });
+  }
+
+  if (phone) {
+    const rawDigits = phone.replace(/\D/g, '');
+    const cleanTel = rawDigits.length === 10 ? `1${rawDigits}` : rawDigits;
+    document.querySelectorAll('[data-phone], .brand-phone').forEach(el => {
+      el.textContent = phone;
+    });
+    document.querySelectorAll('a[href^="tel:"]').forEach(link => {
+      link.href = `tel:${cleanTel}`;
+      if (link.textContent.match(/\(\d{3}\)|\d{3}-\d{3}-\d{4}/)) {
+        link.textContent = link.textContent.replace(/\(\d{3}\)\s*\d{3}-\d{4}|\d{3}-\d{3}-\d{4}/, phone);
+      }
+    });
+  }
+}
+
+function renderPitchToolbar(currCompany, currCity, currPhone, forceOpen) {
+  if (document.getElementById('paPitchWidget')) return;
+
+  const widget = document.createElement('div');
+  widget.id = 'paPitchWidget';
+  widget.className = 'pa-pitch-widget';
+  widget.innerHTML = `
+    <button class="pa-pitch-trigger" id="paPitchToggle" aria-label="Toggle Client Pitch Mode" title="Client Pitch Engine (Alt + P)">
+      <span class="pa-pitch-pulse"></span>
+      <span class="pa-pitch-icon">âš¡</span>
+      <span class="pa-pitch-label">Pitch Mode</span>
+    </button>
+    <div class="pa-pitch-panel" id="paPitchPanel">
+      <div class="pa-pitch-header">
+        <div>
+          <h4>Client Pitch Engine</h4>
+          <p>Personalize this platform live for any HVAC client.</p>
+        </div>
+        <button type="button" class="pa-pitch-close" id="paPitchClose" aria-label="Close panel">&times;</button>
+      </div>
+      <div class="pa-pitch-body">
+        <label>
+          <span>Client Company Name</span>
+          <input type="text" id="paInputCompany" placeholder="e.g. Dallas Climate Pros" value="${currCompany || ''}">
+        </label>
+        <label>
+          <span>City / Metro Area</span>
+          <input type="text" id="paInputCity" placeholder="e.g. Dallas, TX" value="${currCity || ''}">
+        </label>
+        <label>
+          <span>Direct Phone</span>
+          <input type="text" id="paInputPhone" placeholder="e.g. (214) 555-0199" value="${currPhone || ''}">
+        </label>
+        <div class="pa-pitch-actions">
+          <button type="button" class="pa-pitch-btn primary" id="paBtnApply">Apply Live</button>
+          <button type="button" class="pa-pitch-btn outline" id="paBtnCopy">Copy Client Link</button>
+          <button type="button" class="pa-pitch-btn text" id="paBtnReset">Reset to PrimeAir</button>
+        </div>
+        <div class="pa-pitch-status" id="paPitchStatus"></div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(widget);
+
+  const toggle = document.getElementById('paPitchToggle');
+  const panel = document.getElementById('paPitchPanel');
+  const close = document.getElementById('paPitchClose');
+  const btnApply = document.getElementById('paBtnApply');
+  const btnCopy = document.getElementById('paBtnCopy');
+  const btnReset = document.getElementById('paBtnReset');
+  const status = document.getElementById('paPitchStatus');
+
+  const openPanel = () => panel.classList.add('open');
+  const closePanel = () => panel.classList.remove('open');
+
+  toggle.addEventListener('click', () => panel.classList.toggle('open'));
+  close.addEventListener('click', closePanel);
+
+  // Hotkey Alt + P to toggle
+  window.addEventListener('keydown', (e) => {
+    if (e.altKey && (e.key === 'p' || e.key === 'P')) {
+      e.preventDefault();
+      panel.classList.toggle('open');
+    }
+  });
+
+  if (forceOpen) {
+    openPanel();
+  }
+
+  btnApply.addEventListener('click', () => {
+    const comp = document.getElementById('paInputCompany').value.trim();
+    const city = document.getElementById('paInputCity').value.trim();
+    const phone = document.getElementById('paInputPhone').value.trim();
+
+    if (comp) sessionStorage.setItem('pa_custom_company', comp);
+    if (city) sessionStorage.setItem('pa_custom_city', city);
+    if (phone) sessionStorage.setItem('pa_custom_phone', phone);
+
+    applyCustomBranding(comp, city, phone);
+    status.textContent = 'âœ“ Updated live across all sections!';
+    status.style.color = '#10B981';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  });
+
+  btnCopy.addEventListener('click', () => {
+    const comp = document.getElementById('paInputCompany').value.trim();
+    const city = document.getElementById('paInputCity').value.trim();
+    const phone = document.getElementById('paInputPhone').value.trim();
+
+    const url = new URL(window.location.origin + window.location.pathname);
+    if (comp) url.searchParams.set('company', comp);
+    if (city) url.searchParams.set('city', city);
+    if (phone) url.searchParams.set('phone', phone);
+
+    navigator.clipboard.writeText(url.toString()).then(() => {
+      status.textContent = 'âœ“ Personalized client link copied!';
+      status.style.color = '#007AFF';
+      setTimeout(() => { status.textContent = ''; }, 3500);
+    }).catch(() => {
+      status.textContent = 'Link: ' + url.toString();
+    });
+  });
+
+  btnReset.addEventListener('click', () => {
+    sessionStorage.removeItem('pa_custom_company');
+    sessionStorage.removeItem('pa_custom_city');
+    sessionStorage.removeItem('pa_custom_phone');
+    window.location.href = window.location.pathname;
+  });
 }
 
