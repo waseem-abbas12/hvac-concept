@@ -1,46 +1,39 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 64" width="340" height="64" fill="none">
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 325 72" width="325" height="72" fill="none">
   <defs>
-    <linearGradient id="warmFlameW" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#FF375F" />
-      <stop offset="50%" stop-color="#FF9F0A" />
-      <stop offset="100%" stop-color="#FFD60A" />
+    <!-- Heating Arc Gradient -->
+    <linearGradient id="heatArcW" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF3B30" />
+      <stop offset="100%" stop-color="#FF9500" />
     </linearGradient>
-    <linearGradient id="coolFrostW" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#64D2FF" />
-      <stop offset="50%" stop-color="#0A84FF" />
-      <stop offset="100%" stop-color="#5E5CE6" />
+    <!-- Cooling Arc Gradient -->
+    <linearGradient id="coolArcW" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00C7FF" />
+      <stop offset="100%" stop-color="#007AFF" />
     </linearGradient>
-    <filter id="subtleGlowW" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3" />
-    </filter>
   </defs>
 
-  <!-- Large Thermocline Dual-Wing Icon -->
-  <g transform="translate(4, 4)" filter="url(#subtleGlowW)">
-    <!-- Cooling Flow Arc -->
-    <path d="M 28 4 C 13 4, 2 16, 2 30 C 2 44, 13 56, 28 56 C 22 48, 19 39, 19 30 C 19 21, 22 12, 28 4 Z" fill="url(#coolFrostW)" />
-    <!-- Center Air Vortex -->
-    <path d="M 28 10 C 21 16, 17 22, 17 30 C 17 38, 21 44, 28 50 C 35 44, 39 38, 39 30 C 39 22, 35 16, 28 10 Z" fill="#64D2FF" opacity="0.95" />
-    <!-- Heating Flame Arc -->
-    <path d="M 28 4 C 34 12, 37 21, 37 30 C 37 39, 34 48, 28 56 C 43 56, 54 44, 54 30 C 54 16, 43 4, 28 4 Z" fill="url(#warmFlameW)" />
-    <!-- Core Spark -->
-    <circle cx="28" cy="30" r="4.5" fill="#FFFFFF" />
-  </g>
+  <!-- Dynamic Dual Swoop Ellipses -->
+  <!-- Red Heating Swoop (Left curve) -->
+  <path d="M 12 47 C 35 62, 120 70, 162 70 C 120 67, 45 61, 24 49 C 18 46, 14 43, 12 47 Z" fill="url(#heatArcW)" />
+  <path d="M 8 46 C 42 66, 135 71, 162 71 C 115 67, 32 61, 12 47 C 9 45, 7 43, 8 46 Z" fill="#FF453A" opacity="0.9" />
+  <path d="M 313 47 C 290 62, 205 70, 163 70 C 205 67, 280 61, 301 49 C 307 46, 311 43, 313 47 Z" fill="url(#heatArcW)" />
 
-  <!-- Large Punchy Typography (White for Dark Backgrounds) -->
-  <g transform="translate(68, 6)">
-    <!-- Brand Name (Large & Bold) -->
-    <text x="0" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Montserrat', 'Inter', sans-serif" font-weight="900" font-size="40" letter-spacing="-0.5" fill="#FFFFFF">
-      PRIME<tspan fill="#64D2FF">AIR</tspan>
-    </text>
-    
-    <!-- Subtitle -->
-    <text x="2" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="11.5" letter-spacing="4" fill="#94A3B8">
-      HEATING &amp; COOLING
-    </text>
+  <!-- Blue Cooling Swoop (Outer dynamic ring) -->
+  <path d="M 4 44 C 45 68, 140 73, 162 73 C 184 73, 279 68, 320 44 C 275 66, 185 70.5, 162 70.5 C 139 70.5, 49 66, 4 44 Z" fill="url(#coolArcW)" />
+  <path d="M 2 41 C 46 68, 142 74, 162 74 C 182 74, 278 68, 322 41 C 280 67, 184 72, 162 72 C 140 72, 44 67, 2 41 Z" fill="#0A84FF" />
 
-    <!-- Micro Badge -->
-    <rect x="228" y="14" width="44" height="22" rx="5" fill="#0A84FF" fill-opacity="0.3" stroke="#64D2FF" stroke-width="1.2" />
-    <text x="250" y="29" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="11" letter-spacing="1" fill="#64D2FF">PRO</text>
-  </g>
+  <!-- Red Accent Wing on Left -->
+  <path d="M 35 43 C 18 48, 10 52, 24 57 C 28 53, 35 48, 42 45 C 39 44, 37 43, 35 43 Z" fill="#FF453A" />
+  <!-- Red Accent Wing on Right -->
+  <path d="M 290 43 C 307 48, 315 52, 301 57 C 297 53, 290 48, 283 45 C 286 44, 288 43, 290 43 Z" fill="#FF453A" />
+
+  <!-- Main Brand Title: PrimeAir (Heavy White Bold Italic for Dark Footers) -->
+  <text x="162.5" y="38" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Impact', 'Arial Black', 'Montserrat', sans-serif" font-weight="900" font-style="italic" font-size="46" letter-spacing="-0.5" fill="#FFFFFF">
+    Prime<tspan fill="#64D2FF">Air</tspan>
+  </text>
+
+  <!-- Bottom Centered Tag: HVAC (Heavy Clean Caps) -->
+  <text x="162.5" y="63" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Arial Black', 'Montserrat', sans-serif" font-weight="900" font-size="20" letter-spacing="4" fill="#F8FAFC">
+    HVAC
+  </text>
 </svg>

@@ -1,0 +1,39 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 325 72" width="325" height="72" fill="none">
+  <defs>
+    <!-- Heating Arc Gradient -->
+    <linearGradient id="heatArcW" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF3B30" />
+      <stop offset="100%" stop-color="#FF9500" />
+    </linearGradient>
+    <!-- Cooling Arc Gradient -->
+    <linearGradient id="coolArcW" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00C7FF" />
+      <stop offset="100%" stop-color="#007AFF" />
+    </linearGradient>
+  </defs>
+
+  <!-- Dynamic Dual Swoop Ellipses -->
+  <!-- Red Heating Swoop (Left curve) -->
+  <path d="M 12 47 C 35 62, 120 70, 162 70 C 120 67, 45 61, 24 49 C 18 46, 14 43, 12 47 Z" fill="url(#heatArcW)" />
+  <path d="M 8 46 C 42 66, 135 71, 162 71 C 115 67, 32 61, 12 47 C 9 45, 7 43, 8 46 Z" fill="#FF453A" opacity="0.9" />
+  <path d="M 313 47 C 290 62, 205 70, 163 70 C 205 67, 280 61, 301 49 C 307 46, 311 43, 313 47 Z" fill="url(#heatArcW)" />
+
+  <!-- Blue Cooling Swoop (Outer dynamic ring) -->
+  <path d="M 4 44 C 45 68, 140 73, 162 73 C 184 73, 279 68, 320 44 C 275 66, 185 70.5, 162 70.5 C 139 70.5, 49 66, 4 44 Z" fill="url(#coolArcW)" />
+  <path d="M 2 41 C 46 68, 142 74, 162 74 C 182 74, 278 68, 322 41 C 280 67, 184 72, 162 72 C 140 72, 44 67, 2 41 Z" fill="#0A84FF" />
+
+  <!-- Red Accent Wing on Left -->
+  <path d="M 35 43 C 18 48, 10 52, 24 57 C 28 53, 35 48, 42 45 C 39 44, 37 43, 35 43 Z" fill="#FF453A" />
+  <!-- Red Accent Wing on Right -->
+  <path d="M 290 43 C 307 48, 315 52, 301 57 C 297 53, 290 48, 283 45 C 286 44, 288 43, 290 43 Z" fill="#FF453A" />
+
+  <!-- Main Brand Title: PrimeAir (Heavy White Bold Italic for Dark Footers) -->
+  <text x="162.5" y="38" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Impact', 'Arial Black', 'Montserrat', sans-serif" font-weight="900" font-style="italic" font-size="46" letter-spacing="-0.5" fill="#FFFFFF">
+    Prime<tspan fill="#64D2FF">Air</tspan>
+  </text>
+
+  <!-- Bottom Centered Tag: HVAC (Heavy Clean Caps) -->
+  <text x="162.5" y="63" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Arial Black', 'Montserrat', sans-serif" font-weight="900" font-size="20" letter-spacing="4" fill="#F8FAFC">
+    HVAC
+  </text>
+</svg>
