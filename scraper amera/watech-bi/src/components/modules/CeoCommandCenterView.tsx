@@ -253,11 +253,34 @@ export function CeoCommandCenterView() {
     document.body.removeChild(link);
   };
 
-  if (isLoading || !overview || !healthScore) {
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
         <div className="w-10 h-10 border-3 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
         <span className="text-xs font-mono text-slate-400">Synthesizing Agency Command Center Intelligence...</span>
+      </div>
+    );
+  }
+
+  if (!overview || !healthScore) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 max-w-md mx-auto text-center p-8 bg-surface-100 rounded-2xl border border-border">
+        <Crown className="w-12 h-12 text-amber-400" />
+        <h3 className="text-lg font-bold text-white">Initialize Executive Intelligence</h3>
+        <p className="text-xs text-slate-400">
+          No executive dataset found for the current research workspace. Click below to synthesize baseline targets, briefings, and health scoring.
+        </p>
+        <button
+          onClick={async () => {
+            setIsLoading(true);
+            const { seedDemoData } = await import('@/lib/db/seed');
+            await seedDemoData();
+            await loadData();
+          }}
+          className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold rounded-lg text-xs transition-all shadow-md shadow-amber-500/20"
+        >
+          Initialize Executive Command Data
+        </button>
       </div>
     );
   }

@@ -30,9 +30,9 @@ import { SettingsView } from '@/components/modules/SettingsView';
 import { CeoCommandCenterView } from '@/components/modules/CeoCommandCenterView';
 
 function MainModuleRouter() {
-  const { activeModule, isLoading } = useProject();
+  const { activeModule, activeProject, isLoading } = useProject();
 
-  if (isLoading) {
+  if (isLoading && !activeProject) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
         <div className="w-8 h-8 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />

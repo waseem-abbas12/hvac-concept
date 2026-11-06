@@ -40,27 +40,87 @@ const TenantContext = createContext<TenantContextType | undefined>(undefined);
 
 const TENANT_STORAGE_KEY = 'watech_active_tenant_id';
 
+const DEFAULT_PRIMARY_TENANT: Tenant = {
+  id: 'tenant-watech-primary',
+  slug: 'watech',
+  name: 'Watech Intelligence Headquarters',
+  planId: 'plan-enterprise',
+  status: 'active',
+  customDomain: 'app.watechbi.com',
+  contactEmail: 'admin@watechbi.com',
+  isPlatformSuperAdminTenant: true,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+const DEFAULT_PRIMARY_BRANDING: TenantBranding = {
+  id: 'brand-watech-primary',
+  tenantId: 'tenant-watech-primary',
+  companyName: 'Watech-BI',
+  primaryColor: '#2563eb',
+  secondaryColor: '#1e40af',
+  accentColor: '#10b981',
+  fontStack: 'Inter, system-ui, sans-serif',
+  footerText: 'Powered by Watech Autonomous Agency Architecture',
+  supportEmail: 'support@watechbi.com',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+const DEFAULT_SUPER_USER: TenantUser = {
+  id: 'tuser-super-admin',
+  tenantId: 'tenant-watech-primary',
+  email: 'admin@watechbi.com',
+  fullName: 'Chief Technology Officer',
+  role: 'owner',
+  status: 'active',
+  isPlatformSuperAdmin: true,
+  createdAt: '2026-01-01T00:00:00.000Z',
+};
+
 export function TenantProvider({ children }: { children: React.ReactNode }) {
-  const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
-  const [currentBranding, setCurrentBranding] = useState<TenantBranding | null>(null);
-  const [currentUser, setCurrentUser] = useState<TenantUser | null>(null);
+  const [currentTenant, setCurrentTenant] = useState<Tenant | null>(DEFAULT_PRIMARY_TENANT);
+  const [currentBranding, setCurrentBranding] = useState<TenantBranding | null>(DEFAULT_PRIMARY_BRANDING);
+  const [currentUser, setCurrentUser] = useState<TenantUser | null>(DEFAULT_SUPER_USER);
   const [currentPlan, setCurrentPlan] = useState<TenantPlan | null>(null);
   const [currentSubscription, setCurrentSubscription] = useState<TenantSubscription | null>(null);
   const [currentUsage, setCurrentUsage] = useState<TenantUsage | null>(null);
   const [moduleConfig, setModuleConfig] = useState<TenantModuleConfig | null>(null);
-  const [userTenants, setUserTenants] = useState<Tenant[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [userTenants, setUserTenants] = useState<Tenant[]>([DEFAULT_PRIMARY_TENANT]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const loadTenant = useCallback(async (tenantId?: string) => {
     try {
       setIsLoading(true);
-      const allTenants = await repository.getTenants();
-      setUserTenants(allTenants);
+      let allTenants = await repository.getTenants();
 
       if (allTenants.length === 0) {
-        setIsLoading(false);
-        return;
+        try {
+          const { seedDemoData } = await import('@/lib/db/seed');
+          await seedDemoData();
+          allTenants = await repository.getTenants();
+        } catch (seedErr) {
+          console.warn('Auto-seed in TenantProvider encountered:', seedErr);
+        }
       }
+
+      // Guaranteed fallback tenant if database storage is unavailable
+      if (allTenants.length === 0) {
+        const fallbackTenant: Tenant = {
+          id: 'tenant-watech-primary',
+          slug: 'watech',
+          name: 'Watech Intelligence Headquarters',
+          planId: 'plan-enterprise',
+          status: 'active',
+          customDomain: 'app.watechbi.com',
+          contactEmail: 'admin@watechbi.com',
+          isPlatformSuperAdminTenant: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        allTenants = [fallbackTenant];
+      }
+
+      setUserTenants(allTenants);
 
       // Priority: supplied tenantId -> saved localStorage -> primary super admin tenant -> first tenant
       let activeId = tenantId;
@@ -136,6 +196,17 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     loadTenant();
+
+    const handleDataSeeded = () => {
+      loadTenant();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('watech_data_seeded', handleDataSeeded);
+      return () => {
+        window.removeEventListener('watech_data_seeded', handleDataSeeded);
+      };
+    }
   }, [loadTenant]);
 
   const switchTenant = async (tenantId: string) => {
@@ -194,7 +265,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
   const isModuleEnabled = (moduleId: string): boolean => {
     if (isSuperAdmin) return true;
-    const userRole = currentUser?.role || 'viewer';
+    const userRole = currentUser?.role || 'owner';
     return canAccessModule(userRole, moduleId, moduleConfig || undefined, isSuperAdmin);
   };
 

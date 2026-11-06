@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ResearchProject } from '@/types';
 import { repository } from '@/lib/db/repository';
-import { seedDemoData } from '@/lib/db/seed';
+import { seedDemoData, DEMO_PROJECT } from '@/lib/db/seed';
 
 export type AppModuleId =
   | 'command_center'
@@ -55,30 +55,29 @@ export function ProjectProvider({
   children: React.ReactNode;
   initialModule?: AppModuleId;
 }) {
-  const [projects, setProjects] = useState<ResearchProject[]>([]);
-  const [activeProject, setActiveProject] = useState<ResearchProject | null>(null);
+  const [projects, setProjects] = useState<ResearchProject[]>([DEMO_PROJECT]);
+  const [activeProject, setActiveProject] = useState<ResearchProject | null>(DEMO_PROJECT);
   const [activeModule, setActiveModule] = useState<AppModuleId>(initialModule);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const refreshProjects = async () => {
     try {
       setIsLoading(true);
-      const allProjects = await repository.getProjects();
-      if (allProjects.length === 0) {
+      let list = await repository.getProjects();
+      if (list.length === 0) {
         await seedDemoData();
-        const seeded = await repository.getProjects();
-        setProjects(seeded);
-        if (seeded.length > 0 && !activeProject) {
-          setActiveProject(seeded[0]);
+        list = await repository.getProjects();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('watech_data_seeded'));
         }
-      } else {
-        setProjects(allProjects);
-        if (!activeProject && allProjects.length > 0) {
-          setActiveProject(allProjects[0]);
-        } else if (activeProject) {
-          const found = allProjects.find(p => p.id === activeProject.id);
-          setActiveProject(found || allProjects[0]);
-        }
+      }
+      setProjects(list);
+      if (list.length > 0) {
+        setActiveProject((current) => {
+          if (!current) return list[0];
+          const exists = list.find(p => p.id === current.id);
+          return exists || list[0];
+        });
       }
     } catch (err) {
       console.error('Failed to load projects from IndexedDB:', err);
@@ -100,15 +99,16 @@ export function ProjectProvider({
   const deleteProject = async (id: string) => {
     await repository.deleteProject(id);
     await refreshProjects();
-    if (activeProject?.id === id) {
-      setActiveProject(null);
-    }
+    setActiveProject((current) => (current?.id === id ? null : current));
   };
 
   const resetToDemoData = async () => {
     setIsLoading(true);
     await repository.clearAll();
     await seedDemoData();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('watech_data_seeded'));
+    }
     await refreshProjects();
   };
 

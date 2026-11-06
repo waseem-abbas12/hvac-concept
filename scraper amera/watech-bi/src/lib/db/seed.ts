@@ -124,9 +124,31 @@ export const DEMO_MARKET_AREA: MarketArea = {
   createdAt: '2026-10-15T10:00:00.000Z',
 };
 
+let activeSeedingPromise: Promise<void> | null = null;
+
 export async function seedDemoData(): Promise<void> {
+  if (activeSeedingPromise) {
+    return activeSeedingPromise;
+  }
+
+  activeSeedingPromise = (async () => {
+    try {
+      await executeSeedDemoData();
+    } finally {
+      activeSeedingPromise = null;
+    }
+  })();
+
+  return activeSeedingPromise;
+}
+
+async function executeSeedDemoData(): Promise<void> {
   const existingProject = await repository.getProject(DEMO_PROJECT.id);
   if (existingProject) {
+    const existingTenants = await repository.getTenants();
+    if (existingTenants.length === 0) {
+      await seedMultiTenantDemoData();
+    }
     const existingLocalProfiles = await repository.getLocalSeoProfiles(DEMO_PROJECT.id);
     if (existingLocalProfiles.length === 0) {
       await seedLocalSeoDemoData();
@@ -168,13 +190,12 @@ export async function seedDemoData(): Promise<void> {
     if (existingTargets.length === 0) {
       await seedCeoCommandCenterDemoData();
     }
-    const existingTenants = await repository.getTenants();
-    if (existingTenants.length === 0) {
-      await seedMultiTenantDemoData();
-    }
     await seedAustinDemoData();
     return; // Already seeded primary
   }
+
+  // Seed Multi-Tenant & Platform Configuration First so TenantProvider immediately resolves
+  await seedMultiTenantDemoData();
 
   // Seed Catalog
   await repository.saveServices(DEFAULT_WATECH_SERVICES);
@@ -667,9 +688,6 @@ export async function seedDemoData(): Promise<void> {
 
   // 16. Seed CEO Command Center Intelligence (Prompt 24)
   await seedCeoCommandCenterDemoData();
-
-  // 17. Seed Multi-Tenant & White-Label SaaS Intelligence (Prompt 25)
-  await seedMultiTenantDemoData();
 }
 
 export async function seedLocalSeoDemoData(): Promise<void> {

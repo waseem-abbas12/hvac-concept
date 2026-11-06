@@ -20,7 +20,7 @@ import type { Business, WebsiteAudit, Opportunity, LeadScore, Contact } from '@/
 import { formatScoreGrade } from '@/lib/utils';
 
 export function OverviewDashboard() {
-  const { activeProject, setActiveModule } = useProject();
+  const { activeProject, setActiveModule, resetToDemoData } = useProject();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [audits, setAudits] = useState<WebsiteAudit[]>([]);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
@@ -58,11 +58,18 @@ export function OverviewDashboard() {
 
   if (!activeProject) {
     return (
-      <div className="text-center py-16 bg-surface-100 rounded-xl border border-border p-8">
+      <div className="text-center py-16 bg-surface-100 rounded-xl border border-border p-8 max-w-lg mx-auto my-12 space-y-4">
+        <Building2 className="w-12 h-12 text-blue-400 mx-auto" />
         <h3 className="text-base font-semibold text-slate-200">No Research Project Selected</h3>
-        <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+        <p className="text-xs text-slate-400 max-w-md mx-auto">
           Please select an existing project from the top bar or initialize a new research project to begin market intelligence.
         </p>
+        <button
+          onClick={() => resetToDemoData()}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg text-xs transition-all shadow-md shadow-blue-500/20"
+        >
+          Load Dallas-Fort Worth & Austin HVAC Intelligence
+        </button>
       </div>
     );
   }
