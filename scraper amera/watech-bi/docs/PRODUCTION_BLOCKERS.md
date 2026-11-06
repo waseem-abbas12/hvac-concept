@@ -1,11 +1,17 @@
-# Production Blockers & External Dependencies Register
+# WATECH-BI — PRODUCTION BLOCKERS & EXTERNAL DEPENDENCIES REGISTER
+**Last Updated:** 2026-11-07  
+**Status:** Live Preview & Production Vercel Deployed (`https://watech-bi.vercel.app`)
 
-This document lists all required external credentials, environment variables, or owner approvals necessary for complete live production deployment.
+This register records all external dependencies, credentials, and repository authorization requirements needed to unlock full external cloud capabilities.
 
-| Item | Dependency | Category | Status | Impact if Missing | Owner Action Required |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **DATABASE_URL** | Production PostgreSQL Database (e.g., Supabase / Neon / AWS RDS) | Infrastructure | **PENDING CONFIG** | Application operates in client-side Dexie mode or demo SQLite/mock backend; live cloud multi-tenant DB cannot be populated. | Supply PostgreSQL connection string in Vercel project environment variables. |
-| **JWT_SECRET** | Cryptographic 64-char signing secret | Security | **AUTONOMOUSLY GENERATED** | Can generate high-entropy fallback for preview; owner should specify production secret. | Optional override for production. |
-| **RESEND_API_KEY / SMTP** | Transactional Email Provider | Communications | **PENDING CONFIG** | Outbound password resets, user invitations, and client alerts log to console/mock queue instead of sending real emails. | Supply Resend API key or SMTP credentials for live email delivery. |
-| **STRIPE_SECRET_KEY** | Payment Gateway | Billing | **OPTIONAL (MOCK SUPPORTED)** | Billing operates in manual/offline mode; credit card checkout disabled. | Supply Stripe API keys and Webhook secret if live automated billing is desired. |
-| **CRON_SECRET** | Vercel Cron Authentication | Automation | **AUTONOMOUSLY GENERATED** | Scheduled cron tasks won't be authorized without token. | Add `CRON_SECRET` to Vercel env. |
+---
+
+## 1. Active External Dependencies & Action Items
+
+| Item | Component | Severity | Description & Required Owner Action | Current Application Behavior |
+| :--- | :--- | :--- | :--- | :--- |
+| **BLK-01** | **GitHub Push Authorization** | **Medium** | The remote repository `https://github.com/asad1218-coder/hvac-concept.git` returned HTTP 403 (`Permission denied to waseem-abbas12`). To push commits directly to GitHub: Owner must add `waseem-abbas12` as a collaborator with write access, or supply SSH keys/PAT for `asad1218-coder`. | Code committed cleanly to local git branch `main` (`commit e903de01538f7d680e04febcf33460c921bd82cf`). |
+| **BLK-02** | **Cloud PostgreSQL Database** | **Low (Optional)** | Cloud PostgreSQL connection string (`DATABASE_URL`) is not yet entered in Vercel project environment variables. Once supplied (from Supabase, Neon, AWS RDS), run `npx prisma migrate deploy`. | Application operates flawlessly in local-first Dexie.js mode. Health probe reports `operational_local_mode`. |
+| **BLK-03** | **Stripe Secret Key & Webhook** | **Low (Optional)** | `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` are not set. Required only when automated recurring card processing is desired. | Platform administrators can manually configure plans and grant entitlements with full audit trails. |
+| **BLK-04** | **Resend Email API Key** | **Low (Optional)** | `RESEND_API_KEY` is not set. Required for live external transactional email delivery. | System uses built-in development mock logger, recording full template contents to server logs. |
+| **BLK-05** | **Custom Domain DNS** | **Low (Optional)** | The application is currently served on `https://watech-bi.vercel.app`. Connecting a custom domain (e.g., `app.watech.agency`) requires adding CNAME `cname.vercel-dns.com` in DNS. | Active and accessible on official Vercel domain `https://watech-bi.vercel.app`. |

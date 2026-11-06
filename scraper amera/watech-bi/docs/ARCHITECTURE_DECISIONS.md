@@ -1,21 +1,34 @@
-# Architecture Decision Records (ADR) — Watech-BI Production Transition
+# WATECH-BI — ARCHITECTURE DECISIONS REGISTER (ADR)
+**Last Updated:** 2026-11-07  
+**Status:** Approved & Implemented
 
-## ADR-01: Hybrid Local-First Cache + Server-Side PostgreSQL/Prisma Architecture
-- **Status:** Accepted
-- **Context:** Prompts 01–25 were built on a rich client-side Dexie.js (IndexedDB) engine with 50+ stores. While great for offline use and client speed, client-side IndexedDB cannot guarantee multi-user access security, cryptographic tenant isolation, server-side cron automation, or team collaboration.
-- **Decision:** Implement a dual-layer architecture:
-  1. A robust server-side PostgreSQL database managed by Prisma ORM with strict Row-Level Security (RLS) policies and session-based tenant isolation.
-  2. Maintain the existing Dexie repository interface as a client cache and offline persistence layer, with an automated bridge that can ingest and synchronize records.
-- **Consequences:** Eliminates IDOR and cross-tenant leakage hazards at the API layer, while retaining 100% of the client UI components and existing data structures.
+---
 
-## ADR-02: Cryptographic Tenant Session Token (JWT/Cookie)
-- **Status:** Accepted
-- **Context:** Passing tenant IDs in API request bodies or query parameters without server-side membership validation opens severe IDOR vulnerabilities.
-- **Decision:** Authenticated requests must carry an HttpOnly, SameSite, Secure JWT session cookie containing `userId`, `tenantId`, `role`, and `isPlatformSuperAdmin`. The server independently resolves the tenant context from the session rather than trusting client-supplied parameters.
-- **Consequences:** Prevents any tenant from accessing another tenant's records by tampering with request payloads.
+## ADR-01: Dual-Layer Data Architecture (Local Dexie.js + Cloud PostgreSQL with RLS)
+- **Context:** Prompts 01–25 built a rich local-first IndexedDB database using Dexie v16 across 68+ tables. Prompt 26 requires production multi-tenant cloud capability without destroying existing local user data.
+- **Decision:** Implement a dual-layer data tier:
+  1. Dexie.js v16 remains active on the client agent, providing zero-latency offline-first state and instant responsiveness.
+  2. PostgreSQL with Prisma 5.22.0 provides authoritative server-side persistence, connection pooling, and multi-user concurrency.
+  3. Row-Level Security (RLS) policies enforce cryptographic cross-tenant boundaries at the database level via transaction settings (`SET LOCAL app.current_tenant_id = $1`).
+- **Consequences:** Existing browser data is 100% preserved. SaaS migration can be triggered on demand via `migrateDexieToPostgreSql()`.
 
-## ADR-03: Vercel Serverless & Cron Model
-- **Status:** Accepted
-- **Context:** Deploying to Vercel requires stateless serverless execution. Long-running Node.js background daemons are not supported.
-- **Decision:** Utilize Vercel Cron jobs (`vercel.json`) invoking protected `/api/cron/*` endpoints with a high-entropy bearer token `CRON_SECRET`. Tasks are partitioned into bounded, idempotent micro-batches.
-- **Consequences:** Reliable execution of daily briefings, follow-up reminders, and sync routines within serverless timeout limits.
+---
+
+## ADR-02: Stateless JWT Session Cookie Authentication
+- **Context:** Next.js 14 App Router on Vercel Serverless requires secure session management across serverless functions without maintaining stateful in-memory sessions.
+- **Decision:** Use signed JWTs stored in `HttpOnly`, `SameSite=Lax`, and `Secure` cookies (`watech_auth_token`) expiring in 7 days.
+- **Consequences:** Eliminates database roundtrips for basic session verification, works seamlessly with edge middleware and server components, and resists XSS token theft.
+
+---
+
+## ADR-03: Vercel Serverless & Edge Cron Jobs
+- **Context:** Automated reporting, briefings, and reminders cannot rely on an active browser tab.
+- **Decision:** Implement bounded serverless cron endpoints (`/api/cron/briefing`, `/api/cron/reminders`, `/api/cron/sync`) scheduled via `vercel.json` and secured with `CRON_SECRET` authorization headers.
+- **Consequences:** Zero server maintenance overhead, automated scaling, and strict multi-tenant boundary compliance.
+
+---
+
+## ADR-04: Strict HTTP Security Headers & SSRF Guard
+- **Context:** White-label SaaS platforms handle multi-tenant uploads, custom branding, and web scraping.
+- **Decision:** Enforce HSTS (1 year), X-Frame-Options (SAMEORIGIN), X-Content-Type-Options (nosniff), Referrer-Policy, and Permissions-Policy in `next.config.mjs`. Implement `isSafeTargetUrl` to block RFC1918 private IPs and cloud metadata IP ranges (`169.254.169.254`).
+- **Consequences:** Defense against clickjacking, MIME-sniffing attacks, and server-side request forgery.
