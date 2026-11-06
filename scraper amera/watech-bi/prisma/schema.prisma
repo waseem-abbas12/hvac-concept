@@ -1,0 +1,405 @@
+// Prisma Multi-Tenant SaaS Schema for Watech-BI
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -------------------------------------------------------------
+// CORE SAAS & TENANCY MODELS
+// -------------------------------------------------------------
+
+model Tenant {
+  id                         String              @id @default(uuid())
+  slug                       String              @unique
+  name                       String
+  planId                     String
+  status                     String              @default("active")
+  customDomain               String?             @unique
+  contactEmail               String
+  isPlatformSuperAdminTenant Boolean             @default(false)
+  createdAt                  DateTime            @default(now())
+  updatedAt                  DateTime            @updatedAt
+
+  users                      TenantUser[]
+  sessions                   TenantSession[]
+  branding                   TenantBranding?
+  subscription               TenantSubscription?
+  moduleConfig               TenantModuleConfig?
+  usage                      TenantUsage[]
+  auditLogs                  TenantAuditLog[]
+  domains                    TenantDomain[]
+  invitations                TenantInvitation[]
+
+  // Business relations
+  projects                   ResearchProject[]
+  marketAreas                MarketArea[]
+  businesses                 Business[]
+  proposals                  BusinessProposal[]
+  invoices                   AgencyInvoice[]
+  clients                    ClientProfile[]
+  automations                AutomationWorkflow[]
+  secureFiles                SecureFile[]
+
+  @@map("tenants")
+}
+
+model TenantUser {
+  id                   String          @id @default(uuid())
+  tenantId             String
+  email                String
+  passwordHash         String?
+  fullName             String
+  role                 String          @default("employee")
+  status               String          @default("active")
+  isPlatformSuperAdmin Boolean         @default(false)
+  avatarUrl            String?
+  lastLoginAt          DateTime?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  tenant               Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions             TenantSession[]
+  auditLogs            TenantAuditLog[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@map("tenant_users")
+}
+
+model TenantSession {
+  id           String     @id @default(uuid())
+  tenantId     String
+  userId       String
+  sessionToken String     @unique
+  expiresAt    DateTime
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime   @default(now())
+
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user         TenantUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("tenant_sessions")
+}
+
+model TenantBranding {
+  id             String   @id @default(uuid())
+  tenantId       String   @unique
+  companyName    String
+  logoUrl        String?
+  faviconUrl     String?
+  primaryColor   String   @default("#2563eb")
+  secondaryColor String   @default("#4f46e5")
+  accentColor    String   @default("#10b981")
+  fontStack      String   @default("Inter, sans-serif")
+  footerText     String
+  supportEmail   String
+  customCss      String?
+  updatedAt      DateTime @updatedAt
+
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_branding")
+}
+
+model TenantPlan {
+  id                String   @id
+  name              String
+  tier              String
+  priceMonthly      Decimal  @default(0.00) @db.Decimal(10, 2)
+  priceAnnual       Decimal  @default(0.00) @db.Decimal(10, 2)
+  currency          String   @default("USD")
+  userLimit         Int      @default(5)
+  leadLimit         Int      @default(1000)
+  researchLimit     Int      @default(10)
+  aiQueryLimit      Int      @default(500)
+  automationLimit   Int      @default(100)
+  storageLimitMb    Int      @default(5000)
+  features          Json
+  whiteLabelAllowed Boolean  @default(false)
+  customDomainAllowed Boolean @default(false)
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  @@map("tenant_plans")
+}
+
+model TenantSubscription {
+  id                 String    @id @default(uuid())
+  tenantId           String    @unique
+  planId             String
+  status             String    @default("active")
+  billingInterval    String    @default("monthly")
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean   @default(false)
+  trialEndsAt        DateTime?
+  stripeCustomerId   String?
+  stripeSubscriptionId String?
+  billingEmail       String?
+  paymentMethodLast4 String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_subscriptions")
+}
+
+model TenantInvitation {
+  id        String    @id @default(uuid())
+  tenantId  String
+  email     String
+  role      String    @default("employee")
+  token     String    @unique
+  invitedBy String
+  expiresAt DateTime
+  status    String    @default("pending")
+  createdAt DateTime  @default(now())
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("tenant_invitations")
+}
+
+model TenantDomain {
+  id             String    @id @default(uuid())
+  tenantId       String
+  domain         String    @unique
+  status         String    @default("pending")
+  dnsRecordType  String    @default("CNAME")
+  dnsRecordValue String
+  isVerified     Boolean   @default(false)
+  verifiedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("tenant_domains")
+}
+
+model TenantUsage {
+  id                   String   @id @default(uuid())
+  tenantId             String
+  period               String
+  activeUsersCount     Int      @default(0)
+  leadsCount           Int      @default(0)
+  researchOpsCount     Int      @default(0)
+  aiQueriesCount       Int      @default(0)
+  automationExecsCount Int      @default(0)
+  storageBytesUsed     BigInt   @default(0)
+  apiRequestsCount     Int      @default(0)
+  lastTrackedAt        DateTime @default(now())
+
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, period])
+  @@index([tenantId])
+  @@map("tenant_usage")
+}
+
+model TenantAuditLog {
+  id           String      @id @default(uuid())
+  tenantId     String
+  actorUserId  String
+  actorEmail   String
+  action       String
+  resourceType String
+  resourceId   String?
+  details      String
+  ipAddress    String?
+  timestamp    DateTime    @default(now())
+
+  tenant       Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  actor        TenantUser? @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, timestamp])
+  @@map("tenant_audit_logs")
+}
+
+model TenantModuleConfig {
+  id             String   @id @default(uuid())
+  tenantId       String   @unique
+  enabledModules Json
+  customLabels   Json?
+  updatedAt      DateTime @updatedAt
+
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_module_configs")
+}
+
+// -------------------------------------------------------------
+// OPERATIONAL DOMAIN MODELS (TENANT-SCOPED)
+// -------------------------------------------------------------
+
+model ResearchProject {
+  id            String     @id @default(uuid())
+  tenantId      String
+  name          String
+  industryNiche String?
+  cityArea      String?
+  status        String     @default("active")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  tenant        Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  businesses    Business[]
+
+  @@index([tenantId])
+  @@map("projects")
+}
+
+model MarketArea {
+  id          String   @id @default(uuid())
+  tenantId    String
+  projectId   String
+  name        String
+  city        String
+  state       String
+  zipCodes    Json?
+  createdAt   DateTime @default(now())
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, projectId])
+  @@map("market_areas")
+}
+
+model Business {
+  id            String              @id @default(uuid())
+  tenantId      String
+  projectId     String
+  officialName  String
+  brandName     String?
+  domain        String?
+  websiteUrl    String?
+  phone         String?
+  email         String?
+  address       String?
+  city          String?
+  state         String?
+  zip           String?
+  status        String              @default("discovered")
+  opportunityScore Int              @default(0)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  project       ResearchProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  proposals     BusinessProposal[]
+
+  @@index([tenantId])
+  @@index([tenantId, projectId])
+  @@index([tenantId, status])
+  @@map("businesses")
+}
+
+model BusinessProposal {
+  id             String        @id @default(uuid())
+  tenantId       String
+  businessId     String
+  projectId      String
+  proposalNumber String
+  title          String
+  status         String        @default("draft")
+  totalValue     Decimal       @default(0.00) @db.Decimal(12, 2)
+  currency       String        @default("USD")
+  content        Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business       Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, businessId])
+  @@index([tenantId, status])
+  @@map("proposals")
+}
+
+model ClientProfile {
+  id              String          @id @default(uuid())
+  tenantId        String
+  companyName     String
+  contactName     String
+  email           String
+  phone           String?
+  status          String          @default("active")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoices        AgencyInvoice[]
+
+  @@index([tenantId])
+  @@map("clients")
+}
+
+model AgencyInvoice {
+  id            String         @id @default(uuid())
+  tenantId      String
+  invoiceNumber String
+  clientId      String
+  totalAmount   Decimal        @default(0.00) @db.Decimal(12, 2)
+  amountPaid    Decimal        @default(0.00) @db.Decimal(12, 2)
+  balance       Decimal        @default(0.00) @db.Decimal(12, 2)
+  status        String         @default("draft")
+  dueDate       DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client        ClientProfile  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, clientId])
+  @@index([tenantId, status])
+  @@map("agency_invoices")
+}
+
+model AutomationWorkflow {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  description String?
+  triggerType String
+  actions     Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("automation_workflows")
+}
+
+model SecureFile {
+  id             String   @id @default(uuid())
+  tenantId       String
+  uploadedBy     String
+  fileName       String
+  fileSize       BigInt
+  mimeType       String
+  storageKey     String   @unique
+  bucketName     String
+  visibility     String   @default("private")
+  checksum       String?
+  createdAt      DateTime @default(now())
+
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("secure_files")
+}
