@@ -1,0 +1,4 @@
+scraper amera/
+.git
+.env*
+node_modules
