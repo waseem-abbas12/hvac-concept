@@ -53,6 +53,7 @@ export type WatechService = OpportunityCategory;
 
 export interface ResearchProject {
   id: string;
+  tenantId?: string;
   name: string;
   country: string;
   stateRegion: string;
@@ -105,7 +106,9 @@ export interface MarketArea {
 
 export interface Business {
   id: string;
+  tenantId?: string;
   projectId: string;
+  googlePlaceId?: string;
   officialName: string;
   brandName?: string;
   domain: string;
@@ -126,6 +129,7 @@ export interface Business {
   ownerManagerName?: string;
   ownerManagerRole?: string;
   ownerVerificationStatus: VerificationStatus;
+  opportunityScore?: number;
   pricingNotes?: string;
   reviewRating?: number;
   reviewCount?: number;

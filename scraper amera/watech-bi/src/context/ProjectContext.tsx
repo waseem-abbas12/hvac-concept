@@ -6,8 +6,13 @@ import { repository } from '@/lib/db/repository';
 import { seedDemoData, DEMO_PROJECT } from '@/lib/db/seed';
 
 export type AppModuleId =
+  | 'lead_pipeline'
   | 'command_center'
   | 'overview'
+  | 'projects'
+  | 'lead_intelligence'
+  | 'followups'
+  | 'billing'
   | 'market_research'
   | 'market_mapping'
   | 'discovery'
@@ -31,7 +36,10 @@ export type AppModuleId =
   | 'client_projects'
   | 'agency_performance'
   | 'automation'
-  | 'settings';
+  | 'settings'
+  | 'integrations'
+  | 'jobs'
+  | 'notifications';
 
 interface ProjectContextType {
   projects: ResearchProject[];
@@ -73,9 +81,18 @@ export function ProjectProvider({
       }
       setProjects(list);
       if (list.length > 0) {
+        let requestedProjectId: string | null = null;
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search);
+          requestedProjectId = params.get('project');
+        }
         setActiveProject((current) => {
+          if (requestedProjectId) {
+            const requested = list.find((p) => p.id === requestedProjectId);
+            if (requested) return requested;
+          }
           if (!current) return list[0];
-          const exists = list.find(p => p.id === current.id);
+          const exists = list.find((p) => p.id === current.id);
           return exists || list[0];
         });
       }
@@ -87,6 +104,13 @@ export function ProjectProvider({
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const mod = params.get('module') as AppModuleId | null;
+      if (mod) {
+        setActiveModule(mod);
+      }
+    }
     refreshProjects();
   }, []);
 

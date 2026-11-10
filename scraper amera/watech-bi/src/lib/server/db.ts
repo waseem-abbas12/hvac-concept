@@ -5,7 +5,11 @@ declare global {
   var cachedPrisma: PrismaClient | undefined;
 }
 
-const isDatabaseConfigured = Boolean(process.env.DATABASE_URL);
+const isDatabaseConfigured = Boolean(
+  process.env.DATABASE_URL &&
+  !process.env.DATABASE_URL.includes('placeholder') &&
+  !process.env.DATABASE_URL.includes('localhost:5432')
+);
 
 let prisma: PrismaClient;
 

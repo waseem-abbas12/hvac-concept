@@ -26,8 +26,17 @@ import { ProposalQuotationView } from '@/components/modules/ProposalQuotationVie
 import { ClientProjectView } from '@/components/modules/ClientProjectView';
 import { AgencyPerformanceView } from '@/components/modules/AgencyPerformanceView';
 import { AutomationHubView } from '@/components/modules/AutomationHubView';
+import { IntegrationsView } from '@/components/modules/IntegrationsView';
+import { BackgroundJobsView } from '@/components/modules/BackgroundJobsView';
+import { NotificationsView } from '@/components/modules/NotificationsView';
 import { SettingsView } from '@/components/modules/SettingsView';
 import { CeoCommandCenterView } from '@/components/modules/CeoCommandCenterView';
+import { PipelineWorkflowView } from '@/components/modules/PipelineWorkflowView';
+import { ProjectsManagementView } from '@/components/modules/ProjectsManagementView';
+import { LeadIntelligenceView } from '@/components/modules/LeadIntelligenceView';
+import { FollowUpWorkspaceView } from '@/components/modules/FollowUpWorkspaceView';
+import { BillingSubscriptionView } from '@/components/modules/BillingSubscriptionView';
+import { OnboardingChecklistWidget } from '@/components/onboarding/OnboardingChecklistWidget';
 
 function MainModuleRouter() {
   const { activeModule, activeProject, isLoading } = useProject();
@@ -42,10 +51,20 @@ function MainModuleRouter() {
   }
 
   switch (activeModule) {
-    case 'command_center':
-      return <CeoCommandCenterView />;
     case 'overview':
       return <OverviewDashboard />;
+    case 'projects':
+      return <ProjectsManagementView />;
+    case 'lead_pipeline':
+      return <PipelineWorkflowView />;
+    case 'lead_intelligence':
+      return <LeadIntelligenceView />;
+    case 'followups':
+      return <FollowUpWorkspaceView />;
+    case 'billing':
+      return <BillingSubscriptionView />;
+    case 'command_center':
+      return <CeoCommandCenterView />;
     case 'market_research':
       return <AutomatedMarketResearchView />;
     case 'market_mapping':
@@ -91,6 +110,12 @@ function MainModuleRouter() {
       return <AgencyPerformanceView />;
     case 'automation':
       return <AutomationHubView />;
+    case 'integrations':
+      return <IntegrationsView />;
+    case 'jobs':
+      return <BackgroundJobsView />;
+    case 'notifications':
+      return <NotificationsView />;
     case 'settings':
       return <SettingsView />;
     default:
@@ -102,6 +127,7 @@ export default function Home() {
   return (
     <ProjectProvider>
       <AppShell>
+        <OnboardingChecklistWidget />
         <MainModuleRouter />
       </AppShell>
     </ProjectProvider>

@@ -1,35 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/server/auth';
+import { NotificationService } from '@/lib/server/notificationService';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if ('status' in auth) return auth;
 
-  // In-app notifications list scoped to authenticated user and tenant
-  const mockNotifications = [
-    {
-      id: 'notif-1',
-      tenantId: auth.user.tenantId,
-      title: 'Welcome to Watech-BI',
-      message: 'Your agency command center is live and active.',
-      type: 'info',
-      read: false,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: 'notif-2',
-      tenantId: auth.user.tenantId,
-      title: 'Database Security Audit',
-      message: 'Multi-tenant RLS policies and server boundary active.',
-      type: 'success',
-      read: true,
-      createdAt: new Date(Date.now() - 3600000).toISOString(),
-    },
-  ];
-
-  return NextResponse.json({
-    notifications: mockNotifications,
-  });
+  try {
+    const { notifications, unreadCount } = NotificationService.listNotifications(auth.user.tenantId, 50);
+    return NextResponse.json({
+      success: true,
+      notifications,
+      unreadCount,
+    });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -38,13 +26,23 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { notificationId } = body;
+    const { action, notificationId } = body;
 
-    return NextResponse.json({
-      success: true,
-      markedRead: notificationId,
-    });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (action === 'mark_all_read') {
+      const count = NotificationService.markAllAsRead(auth.user.tenantId);
+      return NextResponse.json({ success: true, markedReadCount: count });
+    }
+
+    if (notificationId) {
+      const marked = NotificationService.markAsRead(auth.user.tenantId, notificationId);
+      if (!marked) {
+        return NextResponse.json({ success: false, error: 'Notification not found or access denied.' }, { status: 404 });
+      }
+      return NextResponse.json({ success: true, markedRead: notificationId });
+    }
+
+    return NextResponse.json({ success: false, error: 'Invalid action or notificationId.' }, { status: 400 });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }

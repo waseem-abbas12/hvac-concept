@@ -56,14 +56,14 @@ export function classifyDecisionMakerRole(
 
   // Tier 1: C-Level & Equity Owners
   if (
-    /\b(owner|founder|co-founder|ceo|president|principal|proprietor|managing director)\b/i.test(lower)
+    /\b(owner|founder|co-founder|ceo|president|principal|proprietor|managing director|chief executive officer)\b/i.test(lower)
   ) {
     return { tier: 'tier1_executive', isDecisionMaker: true, normalizedTitle: title };
   }
 
   // Tier 2: Senior Management & Operational Directors
   if (
-    /\b(general manager|operations director|vp|vice president|marketing director|business development|commercial director|managing partner)\b/i.test(lower)
+    /\b(general manager|operations director|director of [a-z0-9\s]+|director|vp|vice president|marketing director|business development|commercial director|managing partner)\b/i.test(lower)
   ) {
     return { tier: 'tier2_director', isDecisionMaker: true, normalizedTitle: title };
   }

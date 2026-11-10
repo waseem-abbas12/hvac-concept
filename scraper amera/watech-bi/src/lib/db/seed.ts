@@ -69,6 +69,7 @@ import { DEFAULT_WATECH_SERVICES, DEFAULT_WATECH_PACKAGES } from '@/lib/engines/
 import { DEFAULT_BRANDING_CONFIG, STANDARD_TERMS_AND_CONDITIONS } from '@/lib/engines/proposalTemplatesData';
 import { DEFAULT_TEAM_MEMBERS, ONBOARDING_TEMPLATES } from '@/lib/engines/projectTemplatesData';
 import { AUTOMATION_TEMPLATES } from '@/lib/engines/automationTemplates';
+import { seedCantonRealData } from './cantonHvacRealSeed';
 
 export const DEMO_PROJECT: ResearchProject = {
   id: 'proj-demo-dfw-hvac',
@@ -191,6 +192,7 @@ async function executeSeedDemoData(): Promise<void> {
       await seedCeoCommandCenterDemoData();
     }
     await seedAustinDemoData();
+    await seedCantonRealData();
     return; // Already seeded primary
   }
 
@@ -205,6 +207,7 @@ async function executeSeedDemoData(): Promise<void> {
   await repository.saveProject(DEMO_PROJECT);
   await repository.saveMarketArea(DEMO_MARKET_AREA);
   await seedAustinDemoData();
+  await seedCantonRealData();
 
   // 2. Businesses
   const businesses: Business[] = [

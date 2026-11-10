@@ -802,6 +802,33 @@ export function LeadCrmView() {
         </div>
       )}
 
+      {/* Empty State Banner when no leads exist */}
+      {businesses.length === 0 && (
+        <div className="p-8 rounded-2xl bg-surface-100 border border-dashed border-border text-center space-y-4 my-4 max-w-2xl mx-auto">
+          <Users2 className="w-10 h-10 text-blue-400 mx-auto" />
+          <div className="space-y-1">
+            <h3 className="text-base font-semibold text-slate-200">No Leads in Pipeline CRM Yet</h3>
+            <p className="text-xs text-slate-400 max-w-md mx-auto">
+              Leads are populated here after running the 10-stage autonomous pipeline or discovering businesses. You can track qualification, schedule follow-ups, and review outreach drafts.
+            </p>
+          </div>
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <button
+              onClick={() => setActiveModule('lead_pipeline')}
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md shadow-blue-500/20"
+            >
+              Open 10-Stage Pipeline
+            </button>
+            <button
+              onClick={() => setActiveModule('discovery')}
+              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-border text-xs font-medium"
+            >
+              Import Leads (CSV)
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* VIEW 1: KANBAN BOARD */}
       {viewMode === 'kanban' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3 overflow-x-auto pb-4">

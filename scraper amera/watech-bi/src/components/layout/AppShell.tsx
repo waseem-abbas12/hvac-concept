@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   Compass,
@@ -34,11 +34,19 @@ import {
   Crown,
   Building2,
   ShieldCheck,
+  CreditCard,
+  User,
+  LogOut,
+  Command,
+  Cpu,
+  Key,
+  Bell,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useProject, AppModuleId } from '@/context/ProjectContext';
 import { useTenant } from '@/context/TenantContext';
 import { ProjectModal } from '@/components/modals/ProjectModal';
+import { GlobalSearchDialog } from '@/components/modals/GlobalSearchDialog';
 
 interface NavItem {
   id: AppModuleId;
@@ -47,62 +55,54 @@ interface NavItem {
   badge?: string;
 }
 
-const APP_MODULE_TO_SAAS_KEY: Record<AppModuleId, string> = {
-  command_center: 'command-center',
-  overview: 'overview',
-  market_research: 'market-research',
-  market_mapping: 'market-mapping',
-  discovery: 'business-discovery',
-  website_audit: 'website-audit',
-  local_seo: 'local-seo',
-  contact_discovery: 'contact-discovery',
-  business_intelligence: 'market-research',
-  content_discovery: 'content-discovery',
-  opportunity_analysis: 'opportunity-analysis',
-  lead_scoring: 'lead-scoring',
-  email_verification: 'email-verification',
-  outreach_strategy: 'outreach-strategy',
-  research_reports: 'market-research',
-  lead_crm: 'crm-pipeline',
-  ai_assistant: 'ai-assistant',
-  competitor_monitoring: 'competitor-monitor',
-  multi_market: 'multi-market',
-  sales_intelligence: 'buyer-signals',
-  service_recommendations: 'service-recommendations',
-  proposals: 'proposals',
-  client_projects: 'client-projects',
-  agency_performance: 'agency-performance',
-  automation: 'automation-hub',
-  settings: 'overview',
-};
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
 
-const NAV_ITEMS: NavItem[] = [
-  { id: 'command_center', label: 'CEO Command Center', icon: Crown, badge: 'CEO' },
-  { id: 'overview', label: 'Overview Dashboard', icon: LayoutDashboard },
-  { id: 'market_research', label: 'Market Research Engine', icon: Compass },
-  { id: 'market_mapping', label: 'Market Mapping & Topology', icon: MapPin },
-  { id: 'discovery', label: 'Business Discovery', icon: Search },
-  { id: 'website_audit', label: 'Website Audit (10-Cat)', icon: Globe2 },
-  { id: 'local_seo', label: 'Local SEO & GBP Intel', icon: MapPin, badge: 'P05' },
-  { id: 'contact_discovery', label: 'Contact & Decision-Makers', icon: Users, badge: 'P09' },
-  { id: 'email_verification', label: 'Email Discovery & Verify', icon: MailCheck, badge: 'P10' },
-  { id: 'outreach_strategy', label: 'Outreach Strategy & Intel', icon: Send, badge: 'P11' },
-  { id: 'business_intelligence', label: 'Business Intelligence', icon: BrainCircuit },
-  { id: 'content_discovery', label: 'Content & Competitor Intel', icon: FileText, badge: 'P06' },
-  { id: 'opportunity_analysis', label: 'Opportunity Analysis', icon: Target, badge: 'P07' },
-  { id: 'lead_scoring', label: 'Lead Scoring (100-Pt)', icon: Calculator, badge: 'P08' },
-  { id: 'research_reports', label: 'Research Reports & Dossier', icon: FileCheck2 },
-  { id: 'lead_crm', label: 'Lead CRM & Sequences', icon: Users2 },
-  { id: 'ai_assistant', label: 'AI Business Research Analyst', icon: Sparkles, badge: 'P14' },
-  { id: 'competitor_monitoring', label: 'Competitor Surveillance', icon: Eye, badge: 'P15' },
-  { id: 'multi_market', label: 'Multi-Market Intelligence', icon: Globe2, badge: 'P16' },
-  { id: 'sales_intelligence', label: 'Sales Priority & Signals', icon: Zap, badge: 'P17' },
-  { id: 'service_recommendations', label: 'Service & Package Engine', icon: PackageCheck, badge: 'P18' },
-  { id: 'proposals', label: 'Proposals, Quotes & Pricing', icon: FileCheck2, badge: 'P19' },
-  { id: 'client_projects', label: 'Client Onboarding & Projects', icon: Briefcase, badge: 'P20' },
-  { id: 'agency_performance', label: 'Agency Performance & Revenue', icon: TrendingUp, badge: 'P21' },
-  { id: 'automation', label: 'Workflow Automation Hub', icon: GitFork, badge: 'P23' },
-  { id: 'settings', label: 'Settings & Integrations', icon: Settings },
+const NAV_SECTIONS: NavSection[] = [
+  {
+    title: 'WORKSPACE',
+    items: [
+      { id: 'overview', label: 'Executive Overview', icon: LayoutDashboard },
+      { id: 'projects', label: 'Projects Manager', icon: Briefcase },
+    ],
+  },
+  {
+    title: 'INTELLIGENCE',
+    items: [
+      { id: 'lead_pipeline', label: 'Autonomous Pipeline', icon: Zap, badge: '10-Stage' },
+      { id: 'discovery', label: 'Discover & Import', icon: Search },
+      { id: 'lead_intelligence', label: 'Lead Intelligence Dossier', icon: BrainCircuit },
+      { id: 'website_audit', label: 'Website Audits', icon: Globe2 },
+      { id: 'opportunity_analysis', label: 'Revenue Opportunities', icon: Target },
+    ],
+  },
+  {
+    title: 'SALES & CRM',
+    items: [
+      { id: 'lead_crm', label: 'CRM Pipeline Board', icon: Users2 },
+      { id: 'followups', label: 'Follow-Up Workspace', icon: Send },
+    ],
+  },
+  {
+    title: 'MANAGEMENT',
+    items: [
+      { id: 'research_reports', label: 'Research Reports', icon: FileCheck2 },
+      { id: 'automation', label: 'Workflow Automations', icon: GitFork },
+      { id: 'jobs', label: 'Background Jobs', icon: Cpu },
+      { id: 'command_center', label: 'CEO Command Center', icon: Crown },
+    ],
+  },
+  {
+    title: 'ACCOUNT',
+    items: [
+      { id: 'billing', label: 'Subscription & Usage', icon: CreditCard },
+      { id: 'integrations', label: 'Integrations Hub', icon: Key },
+      { id: 'notifications', label: 'Notifications', icon: Bell },
+      { id: 'settings', label: 'Settings', icon: Settings },
+    ],
+  },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -121,32 +121,41 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     userTenants,
     isSuperAdmin,
     switchTenant,
-    isModuleEnabled,
   } = useTenant();
 
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
   const [isTenantDropdownOpen, setIsTenantDropdownOpen] = useState(false);
+  const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const visibleNavItems = NAV_ITEMS.filter(item => {
-    const saasKey = APP_MODULE_TO_SAAS_KEY[item.id];
-    if (!saasKey) return true;
-    return isModuleEnabled(saasKey);
-  });
+  // Global Keyboard shortcut: Cmd+K / Ctrl+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const brandPrimaryColor = currentBranding?.primaryColor || '#2563eb';
   const brandName = currentBranding?.companyName || 'WATECH';
   const brandInitial = brandName.charAt(0).toUpperCase() || 'W';
+  const planTag = (currentTenant?.planId.replace('plan-', '') || 'starter').toUpperCase();
 
   return (
     <div className="min-h-screen flex flex-col bg-[#070b16] text-slate-100 selection:bg-brand-500 selection:text-white">
       {/* Top Header */}
       <header className="h-16 border-b border-border bg-[#0b1329]/95 backdrop-blur sticky top-0 z-40 flex items-center justify-between px-4 lg:px-6">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 lg:gap-4">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="lg:hidden p-2 text-slate-400 hover:text-white"
+            aria-label="Toggle mobile menu"
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -162,12 +171,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm tracking-tight text-white uppercase">{brandName}</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/25 uppercase">
-                  {currentTenant?.planId.replace('plan-', '') || 'OS'}
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/25 uppercase font-bold">
+                  {planTag}
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 font-mono hidden sm:block truncate max-w-[220px]">
-                {currentTenant?.name || 'GROWTH RESEARCH & PROVENANCE ENGINE'}
+              <p className="text-[10px] text-slate-400 font-mono hidden sm:block truncate max-w-[200px]">
+                {currentTenant?.name || 'COMMERCIAL INTELLIGENCE OS'}
               </p>
             </div>
           </div>
@@ -181,7 +190,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-50 border border-border text-xs text-slate-200 hover:bg-surface-100 hover:border-slate-700 transition-all text-left"
             >
               <Building2 className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-              <div className="truncate max-w-[130px] sm:max-w-[170px]">
+              <div className="truncate max-w-[120px] sm:max-w-[160px]">
                 <span className="text-slate-400 block text-[9px] uppercase tracking-wider font-semibold">Tenant Org</span>
                 <span className="font-medium truncate block">
                   {currentTenant ? currentTenant.name : 'Select Tenant'}
@@ -199,11 +208,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     onClick={() => setIsTenantDropdownOpen(false)}
                     className="text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium capitalize text-xs"
                   >
-                    <Plus className="w-3 h-3" /> White-Label
+                    <Plus className="w-3 h-3" /> Add Tenant
                   </Link>
                 </div>
                 <div className="max-h-56 overflow-y-auto py-1">
-                  {userTenants.map(t => (
+                  {userTenants.map((t) => (
                     <button
                       key={t.id}
                       onClick={() => {
@@ -216,7 +225,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     >
                       <div className="truncate">
                         <div className="truncate font-medium">{t.name}</div>
-                        <div className="text-[10px] text-slate-500 font-mono">{t.slug} • {t.status}</div>
+                        <div className="text-[10px] text-slate-500 font-mono">
+                          {t.slug} • {t.status}
+                        </div>
                       </div>
                       {t.isPlatformSuperAdminTenant && (
                         <span className="text-[9px] font-mono px-1 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
@@ -226,18 +237,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </button>
                   ))}
                 </div>
-                {isSuperAdmin && (
-                  <div className="border-t border-border mt-1 pt-1 px-2">
-                    <Link
-                      href="/platform-admin"
-                      onClick={() => setIsTenantDropdownOpen(false)}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-semibold text-blue-400 hover:bg-blue-500/10 transition"
-                    >
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>Platform Super-Admin Console</span>
-                    </Link>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -248,13 +247,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="relative">
             <button
               onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-50 border border-border text-xs text-slate-200 hover:bg-surface-100 hover:border-slate-700 transition-all text-left max-w-[200px] sm:max-w-[280px]"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-50 border border-border text-xs text-slate-200 hover:bg-surface-100 hover:border-slate-700 transition-all text-left max-w-[180px] sm:max-w-[240px]"
             >
               <Layers className="w-3.5 h-3.5 text-blue-400 shrink-0" />
               <div className="truncate">
                 <span className="text-slate-400 block text-[9px] uppercase tracking-wider font-semibold">Active Project</span>
                 <span className="font-medium truncate block">
-                  {activeProject ? activeProject.name : 'Select or Create Project'}
+                  {activeProject ? activeProject.name : 'Select Project'}
                 </span>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-auto" />
@@ -263,7 +262,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {isProjectDropdownOpen && (
               <div className="absolute left-0 mt-1.5 w-80 bg-surface-100 border border-border rounded-xl shadow-2xl py-2 z-50">
                 <div className="px-3 py-1.5 border-b border-border text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                  <span>Available Projects ({projects.length})</span>
+                  <span>Projects ({projects.length})</span>
                   <button
                     onClick={() => {
                       setIsProjectDropdownOpen(false);
@@ -275,7 +274,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </button>
                 </div>
                 <div className="max-h-60 overflow-y-auto py-1">
-                  {projects.map(p => (
+                  {projects.map((p) => (
                     <button
                       key={p.id}
                       onClick={() => {
@@ -306,38 +305,76 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Header Right Actions */}
-        <div className="flex items-center gap-3">
-          {isSuperAdmin && (
-            <Link
-              href="/platform-admin"
-              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/25 text-blue-400 hover:bg-blue-500/20 text-[11px] font-medium transition"
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Platform Admin</span>
-            </Link>
-          )}
-
-          <Link
-            href="/onboarding"
-            className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-md bg-surface-50 border border-border text-slate-300 hover:text-white text-[11px] font-medium transition"
-          >
-            <span>+ White-Label SaaS</span>
-          </Link>
-
-          {activeProject?.isDemo && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[11px] font-mono">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>DEMO DATASET ACTIVE</span>
-            </div>
-          )}
-
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          {/* Global Search Trigger */}
           <button
-            onClick={() => setIsProjectModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-all shadow-md shadow-blue-500/20"
+            onClick={() => setIsSearchOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-50 border border-border text-slate-400 hover:text-slate-200 hover:bg-surface-100 text-xs transition"
+            title="Global Search (Cmd+K)"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">New Project</span>
+            <Search className="w-3.5 h-3.5 text-blue-400" />
+            <span className="hidden md:inline">Search...</span>
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-slate-800 text-[10px] font-mono border border-slate-700 text-slate-400">
+              ⌘K
+            </kbd>
           </button>
+
+          {/* Account Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setIsAccountDropdownOpen(!isAccountDropdownOpen)}
+              className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-surface-50 border border-transparent hover:border-border transition"
+            >
+              <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-300 font-bold text-xs flex items-center justify-center">
+                {currentTenant?.name?.charAt(0) || 'U'}
+              </div>
+              <ChevronDown className="w-3 h-3 text-slate-400" />
+            </button>
+
+            {isAccountDropdownOpen && (
+              <div className="absolute right-0 mt-1.5 w-60 bg-surface-100 border border-border rounded-xl shadow-2xl py-2 z-50 text-xs">
+                <div className="px-3 py-2 border-b border-border space-y-0.5">
+                  <div className="font-semibold text-slate-200 truncate">{currentTenant?.name || 'Workspace Account'}</div>
+                  <div className="text-[10px] text-slate-400 font-mono">Plan: {planTag} Tier</div>
+                </div>
+
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      setActiveModule('billing');
+                      setIsAccountDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-slate-300 hover:bg-surface-200 flex items-center gap-2"
+                  >
+                    <CreditCard className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Subscription & Quotas</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setActiveModule('settings');
+                      setIsAccountDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-slate-300 hover:bg-surface-200 flex items-center gap-2"
+                  >
+                    <Settings className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Settings & Integrations</span>
+                  </button>
+
+                  {isSuperAdmin && (
+                    <Link
+                      href="/platform-admin"
+                      onClick={() => setIsAccountDropdownOpen(false)}
+                      className="w-full text-left px-3 py-2 text-purple-300 hover:bg-surface-200 flex items-center gap-2"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Platform Super-Admin</span>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -345,43 +382,47 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop Sidebar Navigation */}
         <aside className="w-64 border-r border-border bg-[#090f20] shrink-0 hidden lg:flex flex-col justify-between py-4">
-          <div className="px-3 space-y-1">
-            <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold mb-2">
-              Research & Execution Modules
-            </div>
-            {visibleNavItems.map(item => {
-              const Icon = item.icon;
-              const isActive = activeModule === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveModule(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left ${
-                    isActive
-                      ? 'bg-blue-600/15 text-blue-300 border border-blue-500/30 font-semibold'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-surface-50'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-blue-400' : 'text-slate-400'}`} />
-                  <span className="truncate">{item.label}</span>
-                  {item.badge && (
-                    <span className="ml-auto text-[9px] font-mono px-1 py-0.2 rounded bg-surface-100 text-slate-400 border border-border">
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+          <div className="px-3 space-y-4 overflow-y-auto">
+            {NAV_SECTIONS.map((section) => (
+              <div key={section.title} className="space-y-1">
+                <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
+                  {section.title}
+                </div>
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeModule === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveModule(item.id)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left ${
+                        isActive
+                          ? 'bg-blue-600/15 text-blue-300 border border-blue-500/30 font-semibold'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-surface-50'
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-blue-400' : 'text-slate-400'}`} />
+                      <span className="truncate">{item.label}</span>
+                      {item.badge && (
+                        <span className="ml-auto text-[9px] font-mono px-1.5 py-0.2 rounded bg-surface-100 text-slate-400 border border-border">
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
           </div>
 
           {/* Footer Metadata */}
           <div className="px-4 py-3 mx-3 rounded-lg bg-surface-50 border border-border text-[11px] space-y-1">
             <div className="flex items-center justify-between text-slate-400">
-              <span className="font-mono text-[10px]">Data Storage</span>
-              <span className="text-emerald-400 font-mono text-[10px]">IndexedDB Local</span>
+              <span className="font-mono text-[10px]">Data Layer</span>
+              <span className="text-emerald-400 font-mono text-[10px]">Multi-Tenant SaaS</span>
             </div>
-            <div className="text-[10px] text-slate-500 leading-tight">
-              {currentBranding?.footerText || 'Powered by Watech Autonomous Agency Architecture'}
+            <div className="text-[10px] text-slate-400 leading-tight">
+              {currentBranding?.footerText || 'WATECH B2B Lead Intelligence Platform'}
             </div>
           </div>
         </aside>
@@ -390,34 +431,42 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {isMobileMenuOpen && (
           <div className="fixed inset-0 z-50 lg:hidden bg-black/80 backdrop-blur flex">
             <div className="w-72 bg-[#090f20] h-full p-4 border-r border-border overflow-y-auto flex flex-col justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center justify-between pb-3 border-b border-border mb-3">
-                  <span className="text-xs font-semibold text-white">Research Modules</span>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-border">
+                  <span className="text-xs font-semibold text-white uppercase tracking-wider">Navigation</span>
                   <button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
-                {visibleNavItems.map(item => {
-                  const Icon = item.icon;
-                  const isActive = activeModule === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        setActiveModule(item.id);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-left ${
-                        isActive
-                          ? 'bg-blue-600/15 text-blue-300 border border-blue-500/30'
-                          : 'text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span>{item.label}</span>
-                    </button>
-                  );
-                })}
+
+                {NAV_SECTIONS.map((section) => (
+                  <div key={section.title} className="space-y-1">
+                    <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold px-2">
+                      {section.title}
+                    </div>
+                    {section.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeModule === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            setActiveModule(item.id);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-left ${
+                            isActive
+                              ? 'bg-blue-600/15 text-blue-300 border border-blue-500/30 font-semibold'
+                              : 'text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4" />
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
             </div>
             <div className="flex-1" onClick={() => setIsMobileMenuOpen(false)} />
@@ -426,14 +475,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto bg-[#070b16] p-4 lg:p-8">
-          <div className="max-w-7xl mx-auto">{children}</div>
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* Breadcrumb Bar */}
+            <div className="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-border/40">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400">{currentTenant?.name || 'Workspace'}</span>
+                <span className="text-slate-600">/</span>
+                <span className="text-slate-300 font-medium">{activeProject?.name || 'All Projects'}</span>
+                <span className="text-slate-600">/</span>
+                <span className="text-blue-400 capitalize font-medium">{activeModule.replace(/_/g, ' ')}</span>
+              </div>
+
+              {activeProject?.isDemo && (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/25">
+                  DEMO ACTIVE
+                </span>
+              )}
+            </div>
+
+            {children}
+          </div>
         </main>
       </div>
 
-      <ProjectModal
-        isOpen={isProjectModalOpen}
-        onClose={() => setIsProjectModalOpen(false)}
-      />
+      <ProjectModal isOpen={isProjectModalOpen} onClose={() => setIsProjectModalOpen(false)} />
+      <GlobalSearchDialog isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </div>
   );
 }

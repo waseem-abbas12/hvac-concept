@@ -87,8 +87,8 @@ export function calculateLeadScore(
       isUnknown: true,
     };
   } else {
-    const techSeo = audit.categories.find(c => c.category === 'technical_seo');
-    const localSeo = audit.categories.find(c => c.category === 'local_seo');
+    const techSeo = audit.categories?.find(c => c.category === 'technical_seo');
+    const localSeo = audit.categories?.find(c => c.category === 'local_seo');
     const avgScore = ((techSeo?.score ?? 50) + (localSeo?.score ?? 50)) / 2;
     const points = Math.round(((100 - avgScore) / 100) * weights.seoWeaknesses);
 
@@ -113,8 +113,8 @@ export function calculateLeadScore(
       isUnknown: true,
     };
   } else {
-    const conv = audit.categories.find(c => c.category === 'conversion_focus');
-    const capture = audit.categories.find(c => c.category === 'lead_capture');
+    const conv = audit.categories?.find(c => c.category === 'conversion_focus');
+    const capture = audit.categories?.find(c => c.category === 'lead_capture');
     const avgScore = ((conv?.score ?? 50) + (capture?.score ?? 50)) / 2;
     const points = Math.round(((100 - avgScore) / 100) * weights.leadCaptureWeaknesses);
 

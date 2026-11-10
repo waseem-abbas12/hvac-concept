@@ -19,6 +19,7 @@ import {
   Sliders,
   DollarSign,
   Search,
+  Zap,
 } from 'lucide-react';
 import { useProject } from '@/context/ProjectContext';
 import { repository } from '@/lib/db/repository';
@@ -156,6 +157,13 @@ export function AutomatedMarketResearchView() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveModule('lead_pipeline')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all"
+          >
+            <Zap className="w-3.5 h-3.5" />
+            <span>Autonomous Pipeline (1-Click)</span>
+          </button>
           <button
             onClick={handleExportCsv}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-100 hover:bg-surface-200 text-xs font-medium text-slate-200 border border-border transition-colors"

@@ -2,12 +2,15 @@
 
 import React from 'react';
 import { ProjectProvider } from '@/context/ProjectContext';
-import { WhiteLabelOnboardingView } from '@/components/modules/WhiteLabelOnboardingView';
+import { TenantProvider } from '@/context/TenantContext';
+import { CustomerOnboardingWizard } from '@/components/onboarding/CustomerOnboardingWizard';
 
 export default function OnboardingPage() {
   return (
-    <ProjectProvider initialModule="overview">
-      <WhiteLabelOnboardingView />
-    </ProjectProvider>
+    <TenantProvider>
+      <ProjectProvider initialModule="overview">
+        <CustomerOnboardingWizard />
+      </ProjectProvider>
+    </TenantProvider>
   );
 }

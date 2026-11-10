@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { safeFetch } from '@/lib/server/ssrfGuard';
 import type {
   WebsiteAudit,
   AuditCategoryScore,
@@ -38,42 +39,37 @@ export async function POST(request: Request) {
     let responseTimeMs = 0;
     const hasSsl = targetUrl.startsWith('https://');
 
-    // 1. Fetch Main HTML
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
+    // 1. Fetch Main HTML via safeFetch (SSRF, DNS Rebinding & Payload Cap)
+    const fetchResult = await safeFetch(targetUrl, {
+      timeoutMs: 10000,
+      maxRedirects: 3,
+      maxBytes: 2 * 1024 * 1024,
+    });
 
-      response = await fetch(targetUrl, {
-        signal: controller.signal,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Watech-AuditEngine/2.0',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        },
-      });
-      clearTimeout(timeoutId);
-      responseTimeMs = Date.now() - startTime;
-      html = await response.text();
-    } catch (err: any) {
+    if (!fetchResult.ok && fetchResult.status !== 200) {
       return NextResponse.json({
-        error: `Could not reach ${targetUrl}: ${err.message || 'Connection timeout'}`,
+        error: `Could not reach ${targetUrl}: ${fetchResult.error || 'Connection failed'}`,
         failedInspection: true,
-      }, { status: 502 });
+      }, { status: fetchResult.status === 403 ? 403 : 502 });
     }
 
+    responseTimeMs = fetchResult.durationMs;
+    html = fetchResult.text;
+
     const lowerHtml = html.toLowerCase();
-    const isRedirected = response.redirected;
+    const isRedirected = fetchResult.redirectCount > 0;
 
     // 2. Check Robots.txt & Sitemap.xml
     let robotsTxtAvailable = false;
     let sitemapAvailable = false;
 
     try {
-      const robotsRes = await fetch(`${origin}/robots.txt`, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+      const robotsRes = await safeFetch(`${origin}/robots.txt`, { method: 'HEAD', timeoutMs: 2500, maxRedirects: 1 });
       robotsTxtAvailable = robotsRes.status === 200;
     } catch {}
 
     try {
-      const sitemapRes = await fetch(`${origin}/sitemap.xml`, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+      const sitemapRes = await safeFetch(`${origin}/sitemap.xml`, { method: 'HEAD', timeoutMs: 2500, maxRedirects: 1 });
       sitemapAvailable = sitemapRes.status === 200;
     } catch {}
 
@@ -201,7 +197,7 @@ export async function POST(request: Request) {
     // 4. Calculate 6 Separate Transparent Dimension Scores (0-100)
     // 1) Technical Health
     let techScore = 100;
-    if (response.status !== 200) techScore -= 30;
+    if (fetchResult.status !== 200) techScore -= 30;
     if (!hasSsl) techScore -= 30;
     if (!hasViewport) techScore -= 20;
     if (!robotsTxtAvailable) techScore -= 10;
@@ -467,7 +463,7 @@ export async function POST(request: Request) {
 
     // Traditional 10-categories for backward compatibility
     const categories: AuditCategoryScore[] = [
-      { category: 'existence_and_accessibility', categoryName: 'Existence & Accessibility', score: techScore, weight: 10, status: techScore >= 75 ? 'passed' : 'failed', findingsCount: 0, summary: `HTTP ${response.status}, SSL: ${hasSsl ? 'Active' : 'Missing'}` },
+      { category: 'existence_and_accessibility', categoryName: 'Existence & Accessibility', score: techScore, weight: 10, status: techScore >= 75 ? 'passed' : 'failed', findingsCount: 0, summary: `HTTP ${fetchResult.status}, SSL: ${hasSsl ? 'Active' : 'Missing'}` },
       { category: 'visual_credibility', categoryName: 'Visual Design & Credibility', score: uxScore, weight: 10, status: uxScore >= 70 ? 'passed' : 'warning', findingsCount: 0, summary: `HTML payload: ${(html.length / 1024).toFixed(1)} KB` },
       { category: 'mobile_responsiveness', categoryName: 'Mobile Usability', score: hasViewport ? 85 : 30, weight: 10, status: hasViewport ? 'passed' : 'failed', findingsCount: 0, summary: hasViewport ? 'Viewport meta tag detected' : 'Viewport missing' },
       { category: 'performance_and_speed', categoryName: 'Performance & Speed', score: perfScore, weight: 10, status: perfScore >= 75 ? 'passed' : 'warning', findingsCount: 0, summary: `Server TTFB: ${responseTimeMs}ms` },
@@ -506,7 +502,7 @@ export async function POST(request: Request) {
       grade,
       inspectedAt: new Date().toISOString(),
       responseTimeMs,
-      httpStatus: response.status,
+      httpStatus: fetchResult.status,
       hasSsl,
       isAutomated: true,
       scoringRulesVersion: 'v2.0-advanced-6-dim',

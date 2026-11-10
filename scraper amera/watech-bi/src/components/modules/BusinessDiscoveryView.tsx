@@ -22,6 +22,7 @@ import { useProject } from '@/context/ProjectContext';
 import { repository } from '@/lib/db/repository';
 import type { Business, BusinessStatus } from '@/types';
 import { BusinessModal } from '@/components/modals/BusinessModal';
+import { CsvImportModal } from '@/components/modals/CsvImportModal';
 import { extractDomain } from '@/lib/utils';
 
 export function BusinessDiscoveryView() {
@@ -31,6 +32,7 @@ export function BusinessDiscoveryView() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
+  const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
   const [importNotice, setImportNotice] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -190,18 +192,11 @@ export function BusinessDiscoveryView() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileUpload}
-            accept=".csv"
-            className="hidden"
-          />
           <button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => setIsCsvModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-100 hover:bg-surface-200 text-xs font-medium text-slate-200 border border-border transition-colors"
           >
-            <Upload className="w-3.5 h-3.5" />
+            <Upload className="w-3.5 h-3.5 text-blue-400" />
             <span>Import CSV</span>
           </button>
           <button
@@ -389,6 +384,18 @@ export function BusinessDiscoveryView() {
         onBusinessSaved={loadBusinesses}
         initialBusiness={editingBusiness}
       />
+
+      {activeProject && (
+        <CsvImportModal
+          isOpen={isCsvModalOpen}
+          onClose={() => setIsCsvModalOpen(false)}
+          projectId={activeProject.id}
+          onImportComplete={(count) => {
+            loadBusinesses();
+            setImportNotice(`Successfully ingested ${count} business leads via high-precision CSV engine.`);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -189,7 +189,7 @@ export class ServerTenantRepository {
   // --------------------------------------------------------------------------
 
   async createAuditLog(params: {
-    actorUserId: string;
+    actorUserId?: string;
     actorEmail: string;
     action: string;
     resourceType: string;
@@ -209,6 +209,335 @@ export class ServerTenantRepository {
         details: params.details,
         ipAddress: params.ipAddress,
       },
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // PROJECT OWNERSHIP VERIFICATION
+  // --------------------------------------------------------------------------
+
+  async verifyProjectOwnership(projectId: string): Promise<boolean> {
+    if (!isDatabaseConfigured) return true; // Local dev mode fallback
+    const project = await prisma.researchProject.findFirst({
+      where: {
+        id: projectId,
+        tenantId: this.tenantId,
+      },
+      select: { id: true },
+    });
+    return Boolean(project);
+  }
+
+  // --------------------------------------------------------------------------
+  // DISTRIBUTED PIPELINE LOCK COORDINATION
+  // --------------------------------------------------------------------------
+
+  async acquireDistributedLock(
+    projectId: string,
+    ttlMs: number = 60000,
+    workerId: string = `worker-${Date.now()}`
+  ): Promise<{ acquired: boolean; lockId?: string; error?: string }> {
+    const lockKey = `${this.tenantId}:${projectId}`;
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + ttlMs);
+
+    if (!isDatabaseConfigured) {
+      // Memory fallback when live PostgreSQL is unconfigured
+      return { acquired: true, lockId: `mem-${Date.now()}` };
+    }
+
+    try {
+      return await prisma.$transaction(async (tx) => {
+        const existing = await tx.pipelineLock.findUnique({
+          where: { lockKey },
+        });
+
+        if (existing) {
+          // If existing lock is still valid and not expired, refuse lock
+          if (existing.expiresAt > now && existing.lockedBy !== workerId) {
+            return {
+              acquired: false,
+              error: `Project is currently locked by active execution '${existing.lockedBy}' until ${existing.expiresAt.toISOString()}`,
+            };
+          }
+
+          // Lock has expired or belongs to current worker -> Renew
+          const renewed = await tx.pipelineLock.update({
+            where: { lockKey },
+            data: {
+              lockedBy: workerId,
+              lockedAt: now,
+              expiresAt,
+            },
+          });
+          return { acquired: true, lockId: renewed.id };
+        }
+
+        // No active lock -> Create
+        const created = await tx.pipelineLock.create({
+          data: {
+            tenantId: this.tenantId,
+            projectId,
+            lockKey,
+            lockedBy: workerId,
+            lockedAt: now,
+            expiresAt,
+          },
+        });
+        return { acquired: true, lockId: created.id };
+      });
+    } catch (err: any) {
+      return { acquired: false, error: err.message };
+    }
+  }
+
+  async releaseDistributedLock(projectId: string, workerId?: string): Promise<boolean> {
+    const lockKey = `${this.tenantId}:${projectId}`;
+    if (!isDatabaseConfigured) return true;
+
+    try {
+      await prisma.pipelineLock.deleteMany({
+        where: {
+          lockKey,
+          ...(workerId ? { lockedBy: workerId } : {}),
+        },
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // CENTRALIZED ATOMIC PIPELINE BATCH PERSISTENCE
+  // --------------------------------------------------------------------------
+
+  async savePipelineBatch(batch: {
+    project: any;
+    businesses: any[];
+    audits: any[];
+    contacts: any[];
+    opportunities: any[];
+    leadScores: any[];
+    followUpSchedules: any[];
+    crmActivities: any[];
+    runId?: string;
+  }) {
+    if (!isDatabaseConfigured) {
+      return { success: true, persistedCentrally: false, message: 'Saved to local memory (PostgreSQL not connected)' };
+    }
+
+    return await prisma.$transaction(async (tx) => {
+      // 1. Ensure project exists and belongs to this tenant
+      await tx.researchProject.upsert({
+        where: { id: batch.project.id },
+        create: {
+          id: batch.project.id,
+          tenantId: this.tenantId,
+          name: batch.project.name,
+          industryNiche: batch.project.industryNiche,
+          cityArea: batch.project.cityArea,
+          status: 'active',
+        },
+        update: {
+          name: batch.project.name,
+          industryNiche: batch.project.industryNiche,
+          cityArea: batch.project.cityArea,
+        },
+      });
+
+      // 2. Businesses
+      for (const biz of batch.businesses) {
+        await tx.business.upsert({
+          where: { id: biz.id },
+          create: {
+            id: biz.id,
+            tenantId: this.tenantId,
+            projectId: batch.project.id,
+            officialName: biz.officialName,
+            brandName: biz.brandName || null,
+            domain: biz.domain || null,
+            websiteUrl: biz.websiteUrl || null,
+            phone: biz.phone || null,
+            email: biz.email || null,
+            address: biz.address || null,
+            city: biz.city || null,
+            state: biz.state || null,
+            status: biz.status || 'discovered',
+            opportunityScore: biz.opportunityScore || 0,
+          },
+          update: {
+            officialName: biz.officialName,
+            domain: biz.domain || null,
+            websiteUrl: biz.websiteUrl || null,
+            phone: biz.phone || null,
+            email: biz.email || null,
+            status: biz.status || 'discovered',
+            opportunityScore: biz.opportunityScore || 0,
+          },
+        });
+      }
+
+      // 3. Website Audits
+      for (const aud of batch.audits) {
+        await tx.websiteAudit.upsert({
+          where: { id: aud.id },
+          create: {
+            id: aud.id,
+            tenantId: this.tenantId,
+            businessId: aud.businessId,
+            projectId: batch.project.id,
+            targetUrl: aud.targetUrl || '',
+            totalScore: aud.totalScore || 0,
+            grade: aud.grade || 'N/A',
+            dimensions: aud.dimensions || {},
+            categories: aud.categories || [],
+            advancedIssues: aud.advancedIssues || [],
+          },
+          update: {
+            totalScore: aud.totalScore || 0,
+            grade: aud.grade || 'N/A',
+            dimensions: aud.dimensions || {},
+            categories: aud.categories || [],
+            advancedIssues: aud.advancedIssues || [],
+          },
+        });
+      }
+
+      // 4. Contacts
+      for (const cnt of batch.contacts) {
+        await tx.contact.upsert({
+          where: { id: cnt.id },
+          create: {
+            id: cnt.id,
+            tenantId: this.tenantId,
+            businessId: cnt.businessId,
+            projectId: batch.project.id,
+            fullName: cnt.fullName,
+            roleOrTitle: cnt.roleOrTitle || null,
+            isDecisionMaker: Boolean(cnt.isDecisionMaker),
+            decisionMakerTier: cnt.decisionMakerTier || null,
+            email: cnt.email || null,
+            phone: cnt.phone || null,
+            linkedinUrl: cnt.linkedinUrl || null,
+            contactSourceLabel: cnt.contactSourceLabel || null,
+          },
+          update: {
+            fullName: cnt.fullName,
+            roleOrTitle: cnt.roleOrTitle || null,
+            isDecisionMaker: Boolean(cnt.isDecisionMaker),
+            decisionMakerTier: cnt.decisionMakerTier || null,
+            email: cnt.email || null,
+            phone: cnt.phone || null,
+          },
+        });
+      }
+
+      // 5. Opportunities
+      for (const opp of batch.opportunities) {
+        await tx.opportunity.upsert({
+          where: { id: opp.id },
+          create: {
+            id: opp.id,
+            tenantId: this.tenantId,
+            businessId: opp.businessId,
+            projectId: batch.project.id,
+            category: opp.category,
+            title: opp.title,
+            description: opp.description || '',
+            severity: opp.severity || 'medium',
+            impact: opp.impact || 'moderate',
+            confidenceScore: opp.confidenceScore || 80,
+            evidenceSnippets: opp.evidenceSnippets || [],
+          },
+          update: {
+            title: opp.title,
+            description: opp.description || '',
+            severity: opp.severity || 'medium',
+            impact: opp.impact || 'moderate',
+          },
+        });
+      }
+
+      // 6. Lead Scores
+      for (const sc of batch.leadScores) {
+        await tx.leadScore.upsert({
+          where: { id: sc.id },
+          create: {
+            id: sc.id,
+            tenantId: this.tenantId,
+            businessId: sc.businessId,
+            projectId: batch.project.id,
+            score: sc.score,
+            scoreBand: sc.scoreBand || 'Hold',
+            isQualified: Boolean(sc.isQualified),
+            scoringBreakdown: sc.scoringBreakdown || {},
+          },
+          update: {
+            score: sc.score,
+            scoreBand: sc.scoreBand || 'Hold',
+            isQualified: Boolean(sc.isQualified),
+            scoringBreakdown: sc.scoringBreakdown || {},
+          },
+        });
+      }
+
+      // 7. CRM Activities
+      for (const act of batch.crmActivities) {
+        await tx.crmActivity.upsert({
+          where: { id: act.id },
+          create: {
+            id: act.id,
+            tenantId: this.tenantId,
+            businessId: act.businessId,
+            projectId: batch.project.id,
+            type: act.type,
+            stage: act.stage,
+            title: act.title,
+            notes: act.notes || null,
+          },
+          update: {
+            stage: act.stage,
+            title: act.title,
+            notes: act.notes || null,
+          },
+        });
+      }
+
+      // 8. Follow-up Schedules
+      for (const sch of batch.followUpSchedules) {
+        await tx.followUpSchedule.upsert({
+          where: { id: sch.id },
+          create: {
+            id: sch.id,
+            tenantId: this.tenantId,
+            businessId: sch.businessId,
+            projectId: batch.project.id,
+            scheduledFor: new Date(sch.scheduledFor),
+            cadenceStep: sch.cadenceStep || 1,
+            channel: sch.channel || 'email',
+            status: sch.status || 'pending',
+          },
+          update: {
+            scheduledFor: new Date(sch.scheduledFor),
+            status: sch.status || 'pending',
+          },
+        });
+      }
+
+      return {
+        success: true,
+        persistedCentrally: true,
+        counts: {
+          businesses: batch.businesses.length,
+          audits: batch.audits.length,
+          contacts: batch.contacts.length,
+          opportunities: batch.opportunities.length,
+          leadScores: batch.leadScores.length,
+          crmActivities: batch.crmActivities.length,
+          followUpSchedules: batch.followUpSchedules.length,
+        },
+      };
     });
   }
 }

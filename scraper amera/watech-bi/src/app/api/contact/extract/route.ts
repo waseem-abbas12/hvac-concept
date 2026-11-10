@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { safeFetch } from '@/lib/server/ssrfGuard';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,28 +16,20 @@ export async function POST(request: Request) {
       targetUrl = `https://${targetUrl}`;
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const fetchResult = await safeFetch(targetUrl, {
+      timeoutMs: 10000,
+      maxRedirects: 3,
+      maxBytes: 2 * 1024 * 1024,
+    });
 
-    let html = '';
-    let fetchedUrl = targetUrl;
-    try {
-      const res = await fetch(targetUrl, {
-        signal: controller.signal,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Watech-ContactEngine/1.0',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        },
-      });
-      clearTimeout(timeoutId);
-      html = await res.text();
-      fetchedUrl = res.url || targetUrl;
-    } catch (err: any) {
-      clearTimeout(timeoutId);
+    if (!fetchResult.ok && fetchResult.status !== 200) {
       return NextResponse.json({
-        error: `Could not reach ${targetUrl}: ${err.message || 'Connection timeout'}`,
-      }, { status: 502 });
+        error: `Could not reach ${targetUrl}: ${fetchResult.error || 'Connection failed'}`,
+      }, { status: fetchResult.status === 403 ? 403 : 502 });
     }
+
+    const html = fetchResult.text;
+    const fetchedUrl = fetchResult.finalUrl;
 
     // 1. Title
     const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);

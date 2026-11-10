@@ -102,6 +102,26 @@ export interface IRepository {
   saveBusiness(business: Business): Promise<void>;
   saveBusinesses(businesses: Business[]): Promise<void>;
   deleteBusiness(id: string): Promise<void>;
+  savePipelineBatch(data: {
+    project: ResearchProject;
+    businesses: Business[];
+    audits: WebsiteAudit[];
+    contacts: Contact[];
+    emailRecords: EmailDiscoveryRecord[];
+    opportunities: Opportunity[];
+    leadScores: LeadScore[];
+    followUpSchedules: FollowUpSchedule[];
+    crmActivities: CrmActivity[];
+  }): Promise<{
+    businesses: number;
+    audits: number;
+    contacts: number;
+    emails: number;
+    opportunities: number;
+    scores: number;
+    schedules: number;
+    crmActivities: number;
+  }>;
   findDuplicates(candidate: Partial<Business>, projectId?: string): Promise<DuplicateMatch[]>;
 
   // Market Areas
@@ -532,6 +552,10 @@ class DexieRepositoryImpl implements IRepository {
         this.database.competitorWatchlist,
         this.database.proposals,
         this.database.quotations,
+        this.database.followUpSchedules,
+        this.database.crmActivities,
+        this.database.localSeoProfiles,
+        this.database.localReviews,
       ], 
       async () => {
         await this.database.projects.delete(id);
@@ -549,6 +573,10 @@ class DexieRepositoryImpl implements IRepository {
         await this.database.aiConversations.where('projectId').equals(id).delete();
         await this.database.proposals.where('projectId').equals(id).delete();
         await this.database.quotations.where('projectId').equals(id).delete();
+        await this.database.followUpSchedules.where('projectId').equals(id).delete();
+        await this.database.crmActivities.where('projectId').equals(id).delete();
+        await this.database.localSeoProfiles.where('projectId').equals(id).delete();
+        await this.database.localReviews.where('projectId').equals(id).delete();
         const watches = await this.database.competitorWatchlist.where('projectId').equals(id).toArray();
         for (const w of watches) {
           await this.database.competitorSnapshots.where('watchId').equals(w.id).delete();
@@ -581,7 +609,97 @@ class DexieRepositoryImpl implements IRepository {
   }
 
   async deleteBusiness(id: string): Promise<void> {
-    await this.database.businesses.delete(id);
+    if (typeof window === 'undefined') return;
+    await this.database.transaction('rw', [
+      this.database.businesses,
+      this.database.audits,
+      this.database.auditFindings,
+      this.database.contacts,
+      this.database.opportunities,
+      this.database.leadScores,
+      this.database.followUpSchedules,
+      this.database.crmActivities,
+      this.database.emails,
+      this.database.outreachDrafts,
+    ], async () => {
+      await this.database.businesses.delete(id);
+      await this.database.audits.where('businessId').equals(id).delete();
+      await this.database.auditFindings.where('auditId').equals(`audit-${id}`).delete();
+      await this.database.contacts.where('businessId').equals(id).delete();
+      await this.database.opportunities.where('businessId').equals(id).delete();
+      await this.database.leadScores.where('businessId').equals(id).delete();
+      await this.database.followUpSchedules.where('businessId').equals(id).delete();
+      await this.database.crmActivities.where('businessId').equals(id).delete();
+      await this.database.emails.where('businessId').equals(id).delete();
+      await this.database.outreachDrafts.where('businessId').equals(id).delete();
+    });
+  }
+
+  async savePipelineBatch(data: {
+    project: ResearchProject;
+    businesses: Business[];
+    audits: WebsiteAudit[];
+    contacts: Contact[];
+    emailRecords: EmailDiscoveryRecord[];
+    opportunities: Opportunity[];
+    leadScores: LeadScore[];
+    followUpSchedules: FollowUpSchedule[];
+    crmActivities: CrmActivity[];
+  }): Promise<{
+    businesses: number;
+    audits: number;
+    contacts: number;
+    emails: number;
+    opportunities: number;
+    scores: number;
+    schedules: number;
+    crmActivities: number;
+  }> {
+    if (typeof window === 'undefined') {
+      return {
+        businesses: 0,
+        audits: 0,
+        contacts: 0,
+        emails: 0,
+        opportunities: 0,
+        scores: 0,
+        schedules: 0,
+        crmActivities: 0,
+      };
+    }
+
+    await this.database.transaction('rw', [
+      this.database.projects,
+      this.database.businesses,
+      this.database.audits,
+      this.database.contacts,
+      this.database.emails,
+      this.database.opportunities,
+      this.database.leadScores,
+      this.database.followUpSchedules,
+      this.database.crmActivities,
+    ], async () => {
+      await this.database.projects.put(data.project);
+      if (data.businesses.length > 0) await this.database.businesses.bulkPut(data.businesses);
+      if (data.audits.length > 0) await this.database.audits.bulkPut(data.audits);
+      if (data.contacts.length > 0) await this.database.contacts.bulkPut(data.contacts);
+      if (data.emailRecords.length > 0) await this.database.emails.bulkPut(data.emailRecords);
+      if (data.opportunities.length > 0) await this.database.opportunities.bulkPut(data.opportunities);
+      if (data.leadScores.length > 0) await this.database.leadScores.bulkPut(data.leadScores);
+      if (data.followUpSchedules.length > 0) await this.database.followUpSchedules.bulkPut(data.followUpSchedules);
+      if (data.crmActivities.length > 0) await this.database.crmActivities.bulkPut(data.crmActivities);
+    });
+
+    return {
+      businesses: data.businesses.length,
+      audits: data.audits.length,
+      contacts: data.contacts.length,
+      emails: data.emailRecords.length,
+      opportunities: data.opportunities.length,
+      scores: data.leadScores.length,
+      schedules: data.followUpSchedules.length,
+      crmActivities: data.crmActivities.length,
+    };
   }
 
   async findDuplicates(candidate: Partial<Business>, projectId?: string): Promise<DuplicateMatch[]> {
@@ -1870,17 +1988,28 @@ class DexieRepositoryImpl implements IRepository {
   }
 
   // Prompt 23: Workflow Automation & Integrations
+  private serverWorkflows: AutomationWorkflow[] = [];
+  private serverEvents: AutomationEvent[] = [];
+  private serverExecutions: AutomationExecution[] = [];
+  private serverApprovals: AutomationApproval[] = [];
+
   async getAutomationWorkflows(): Promise<AutomationWorkflow[]> {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') return [...this.serverWorkflows];
     return this.database.automationWorkflows.toArray();
   }
 
   async getAutomationWorkflow(id: string): Promise<AutomationWorkflow | undefined> {
-    if (typeof window === 'undefined') return undefined;
+    if (typeof window === 'undefined') return this.serverWorkflows.find(w => w.id === id);
     return this.database.automationWorkflows.get(id);
   }
 
   async saveAutomationWorkflow(workflow: AutomationWorkflow): Promise<void> {
+    if (typeof window === 'undefined') {
+      const idx = this.serverWorkflows.findIndex(w => w.id === workflow.id);
+      if (idx >= 0) this.serverWorkflows[idx] = workflow;
+      else this.serverWorkflows.push(workflow);
+      return;
+    }
     await this.database.automationWorkflows.put(workflow);
   }
 
@@ -1889,22 +2018,36 @@ class DexieRepositoryImpl implements IRepository {
   }
 
   async getAutomationEvents(limit: number = 50): Promise<AutomationEvent[]> {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') {
+      return [...this.serverEvents].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, limit);
+    }
     const all = await this.database.automationEvents.toArray();
     return all.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, limit);
   }
 
   async getAutomationEvent(id: string): Promise<AutomationEvent | undefined> {
-    if (typeof window === 'undefined') return undefined;
+    if (typeof window === 'undefined') {
+      return this.serverEvents.find(e => e.id === id);
+    }
     return this.database.automationEvents.get(id);
   }
 
   async saveAutomationEvent(event: AutomationEvent): Promise<void> {
+    if (typeof window === 'undefined') {
+      const idx = this.serverEvents.findIndex(e => e.id === event.id);
+      if (idx >= 0) this.serverEvents[idx] = event;
+      else this.serverEvents.unshift(event);
+      return;
+    }
     await this.database.automationEvents.put(event);
   }
 
   async getAutomationExecutions(workflowId?: string, limit: number = 50): Promise<AutomationExecution[]> {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') {
+      let list = [...this.serverExecutions];
+      if (workflowId) list = list.filter(e => e.workflowId === workflowId);
+      return list.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()).slice(0, limit);
+    }
     let all = await this.database.automationExecutions.toArray();
     if (workflowId) {
       all = all.filter(e => e.workflowId === workflowId);
@@ -1913,20 +2056,37 @@ class DexieRepositoryImpl implements IRepository {
   }
 
   async getAutomationExecution(id: string): Promise<AutomationExecution | undefined> {
-    if (typeof window === 'undefined') return undefined;
+    if (typeof window === 'undefined') {
+      return this.serverExecutions.find(e => e.id === id);
+    }
     return this.database.automationExecutions.get(id);
   }
 
   async saveAutomationExecution(execution: AutomationExecution): Promise<void> {
+    if (typeof window === 'undefined') {
+      const idx = this.serverExecutions.findIndex(e => e.id === execution.id);
+      if (idx >= 0) this.serverExecutions[idx] = execution;
+      else this.serverExecutions.unshift(execution);
+      return;
+    }
     await this.database.automationExecutions.put(execution);
   }
 
   async deleteAutomationExecution(id: string): Promise<void> {
+    if (typeof window === 'undefined') {
+      const idx = this.serverExecutions.findIndex(e => e.id === id);
+      if (idx >= 0) this.serverExecutions.splice(idx, 1);
+      return;
+    }
     await this.database.automationExecutions.delete(id);
   }
 
   async getAutomationApprovals(status?: string): Promise<AutomationApproval[]> {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') {
+      let list = [...this.serverApprovals];
+      if (status) list = list.filter(a => a.status === status);
+      return list.sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime());
+    }
     let all = await this.database.automationApprovals.toArray();
     if (status) {
       all = all.filter(a => a.status === status);
@@ -1935,11 +2095,19 @@ class DexieRepositoryImpl implements IRepository {
   }
 
   async getAutomationApproval(id: string): Promise<AutomationApproval | undefined> {
-    if (typeof window === 'undefined') return undefined;
+    if (typeof window === 'undefined') {
+      return this.serverApprovals.find(a => a.id === id);
+    }
     return this.database.automationApprovals.get(id);
   }
 
   async saveAutomationApproval(approval: AutomationApproval): Promise<void> {
+    if (typeof window === 'undefined') {
+      const idx = this.serverApprovals.findIndex(a => a.id === approval.id);
+      if (idx >= 0) this.serverApprovals[idx] = approval;
+      else this.serverApprovals.unshift(approval);
+      return;
+    }
     await this.database.automationApprovals.put(approval);
   }
 

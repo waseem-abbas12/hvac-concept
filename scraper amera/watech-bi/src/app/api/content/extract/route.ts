@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { safeFetch } from '@/lib/server/ssrfGuard';
 import type { ContentClassification } from '@/types';
 
 export async function POST(req: NextRequest) {
@@ -10,42 +11,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Valid URL is required' }, { status: 400 });
     }
 
-    let parsedUrl: URL;
-    try {
-      parsedUrl = new URL(url.startsWith('http') ? url : `https://${url}`);
-    } catch {
-      return NextResponse.json({ error: 'Malformed URL provided' }, { status: 400 });
-    }
+    const targetUrl = url.startsWith('http') ? url : `https://${url}`;
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const fetchResult = await safeFetch(targetUrl, {
+      timeoutMs: 8000,
+      maxRedirects: 3,
+      maxBytes: 1024 * 1024,
+    });
 
-    let html = '';
-    let httpStatus = 0;
-
-    try {
-      const response = await fetch(parsedUrl.toString(), {
-        signal: controller.signal,
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 WatechContentAudit/1.0',
-          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        },
-      });
-      httpStatus = response.status;
-      html = await response.text();
-    } catch (err: unknown) {
-      clearTimeout(timeout);
+    if (!fetchResult.ok && fetchResult.status !== 200) {
       return NextResponse.json(
         {
           success: false,
-          error: `Could not reach target content URL: ${err instanceof Error ? err.message : String(err)}`,
+          error: `Could not reach target content URL: ${fetchResult.error || 'Connection failed'}`,
         },
-        { status: 502 }
+        { status: fetchResult.status === 403 ? 403 : 502 }
       );
-    } finally {
-      clearTimeout(timeout);
     }
+
+    const html = fetchResult.text;
+    const httpStatus = fetchResult.status;
+    const parsedUrl = new URL(fetchResult.finalUrl);
 
     // 1. Title Extraction
     const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);

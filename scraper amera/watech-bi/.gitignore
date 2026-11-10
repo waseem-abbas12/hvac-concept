@@ -14,7 +14,8 @@ dist/
 
 # Environment variables & secrets (NEVER COMMIT)
 .env
-.env*.local
+.env*
+!.env.example.local
 .env.development
 .env.test
 .env.production
@@ -31,6 +32,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# Runtime data & backups
+.watech/
+edge-audit-temp-profile/
+*.tsbuildinfo
+build_output.txt
+
 # OS and Editor files
 .DS_Store
 Thumbs.db
@@ -40,3 +47,4 @@ Thumbs.db
 .vscode/
 .vercel
 .env*
+!.env.example

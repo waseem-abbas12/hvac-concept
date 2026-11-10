@@ -34,7 +34,8 @@ model Tenant {
   domains                    TenantDomain[]
   invitations                TenantInvitation[]
 
-  // Business relations
+  // Hierarchy relations
+  workspaces                 Workspace[]
   projects                   ResearchProject[]
   marketAreas                MarketArea[]
   businesses                 Business[]
@@ -43,6 +44,19 @@ model Tenant {
   clients                    ClientProfile[]
   automations                AutomationWorkflow[]
   secureFiles                SecureFile[]
+
+  // Operational pipeline relations
+  websiteAudits              WebsiteAudit[]
+  auditFindings              AuditFinding[]
+  contacts                   Contact[]
+  emailVerifications         EmailVerificationRecord[]
+  opportunities              Opportunity[]
+  leadScores                 LeadScore[]
+  crmActivities              CrmActivity[]
+  followUpSchedules          FollowUpSchedule[]
+  pipelineRuns               PipelineRun[]
+  pipelineStageExecutions    PipelineStageExecution[]
+  pipelineLocks              PipelineLock[]
 
   @@map("tenants")
 }
@@ -53,7 +67,7 @@ model TenantUser {
   email                String
   passwordHash         String?
   fullName             String
-  role                 String          @default("employee")
+  role                 String          @default("employee") // owner, admin, manager, employee
   status               String          @default("active")
   isPlatformSuperAdmin Boolean         @default(false)
   avatarUrl            String?
@@ -64,6 +78,7 @@ model TenantUser {
   tenant               Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   sessions             TenantSession[]
   auditLogs            TenantAuditLog[]
+  crmActivities        CrmActivity[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -209,7 +224,7 @@ model TenantUsage {
 model TenantAuditLog {
   id           String      @id @default(uuid())
   tenantId     String
-  actorUserId  String
+  actorUserId  String?
   actorEmail   String
   action       String
   resourceType String
@@ -239,23 +254,52 @@ model TenantModuleConfig {
 }
 
 // -------------------------------------------------------------
-// OPERATIONAL DOMAIN MODELS (TENANT-SCOPED)
+// WORKSPACES & PROJECT HIERARCHY
 // -------------------------------------------------------------
 
+model Workspace {
+  id          String            @id @default(uuid())
+  tenantId    String
+  name        String
+  slug        String
+  description String?
+  isDefault   Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projects    ResearchProject[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("workspaces")
+}
+
 model ResearchProject {
-  id            String     @id @default(uuid())
+  id            String              @id @default(uuid())
   tenantId      String
+  workspaceId   String?
   name          String
   industryNiche String?
   cityArea      String?
-  status        String     @default("active")
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  status        String              @default("active")
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 
-  tenant        Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  workspace     Workspace?          @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
   businesses    Business[]
+  audits        WebsiteAudit[]
+  contacts      Contact[]
+  opportunities Opportunity[]
+  leadScores    LeadScore[]
+  crmActivities CrmActivity[]
+  followUpSchedules FollowUpSchedule[]
+  pipelineRuns  PipelineRun[]
+  pipelineLocks PipelineLock[]
 
   @@index([tenantId])
+  @@index([tenantId, workspaceId])
   @@map("projects")
 }
 
@@ -276,34 +320,287 @@ model MarketArea {
   @@map("market_areas")
 }
 
-model Business {
-  id            String              @id @default(uuid())
-  tenantId      String
-  projectId     String
-  officialName  String
-  brandName     String?
-  domain        String?
-  websiteUrl    String?
-  phone         String?
-  email         String?
-  address       String?
-  city          String?
-  state         String?
-  zip           String?
-  status        String              @default("discovered")
-  opportunityScore Int              @default(0)
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+// -------------------------------------------------------------
+// BUSINESSES & CENTRALIZED PIPELINE DATA
+// -------------------------------------------------------------
 
-  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  project       ResearchProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  proposals     BusinessProposal[]
+model Business {
+  id               String              @id @default(uuid())
+  tenantId         String
+  projectId        String
+  officialName     String
+  brandName        String?
+  domain           String?
+  websiteUrl       String?
+  phone            String?
+  email            String?
+  address          String?
+  city             String?
+  state            String?
+  zip              String?
+  status           String              @default("discovered")
+  opportunityScore Int                 @default(0)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  tenant           Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  project          ResearchProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  proposals        BusinessProposal[]
+  audits           WebsiteAudit[]
+  contacts         Contact[]
+  opportunities    Opportunity[]
+  leadScores       LeadScore[]
+  crmActivities    CrmActivity[]
+  followUpSchedules FollowUpSchedule[]
 
   @@index([tenantId])
   @@index([tenantId, projectId])
   @@index([tenantId, status])
   @@map("businesses")
 }
+
+model WebsiteAudit {
+  id              String         @id
+  tenantId        String
+  businessId      String
+  projectId       String
+  targetUrl       String
+  totalScore      Int?
+  grade           String?
+  dimensions      Json?
+  categories      Json?
+  advancedIssues  Json?
+  inspectedAt     DateTime       @default(now())
+
+  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business        Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  project         ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  findings        AuditFinding[]
+
+  @@index([tenantId])
+  @@index([tenantId, businessId])
+  @@index([tenantId, projectId])
+  @@map("website_audits")
+}
+
+model AuditFinding {
+  id                   String       @id
+  tenantId             String
+  auditId              String
+  category             String
+  severity             String
+  observation          String
+  evidenceUrlOrSnippet String?
+
+  tenant               Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  audit                WebsiteAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, auditId])
+  @@map("audit_findings")
+}
+
+model Contact {
+  id                     String                    @id
+  tenantId               String
+  businessId             String
+  projectId              String
+  fullName               String
+  roleOrTitle            String?
+  isDecisionMaker        Boolean                   @default(false)
+  decisionMakerTier      String?
+  email                  String?
+  emailVerificationStatus String?                  @default("unverified")
+  phone                  String?
+  linkedinUrl            String?
+  contactSourceLabel     String?
+
+  tenant                 Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business               Business                  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  project                ResearchProject           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  emailVerifications     EmailVerificationRecord[]
+
+  @@index([tenantId])
+  @@index([tenantId, businessId])
+  @@index([tenantId, projectId])
+  @@map("contacts")
+}
+
+model EmailVerificationRecord {
+  id          String   @id
+  tenantId    String
+  contactId   String?
+  email       String
+  domain      String
+  hasMxRecords Boolean @default(false)
+  mxHosts     Json?
+  status      String
+  verifiedAt  DateTime @default(now())
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contact     Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, email])
+  @@map("email_verification_records")
+}
+
+model Opportunity {
+  id               String          @id
+  tenantId         String
+  businessId       String
+  projectId        String
+  category         String
+  title            String
+  description      String
+  severity         String
+  impact           String
+  confidenceScore  Int             @default(80)
+  estimatedValue   Decimal?        @db.Decimal(12, 2)
+  evidenceSnippets Json?
+
+  tenant           Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business         Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  project          ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, businessId])
+  @@index([tenantId, projectId])
+  @@map("opportunities")
+}
+
+model LeadScore {
+  id               String          @id
+  tenantId         String
+  businessId       String
+  projectId        String
+  score            Int
+  scoreBand        String
+  isQualified      Boolean         @default(false)
+  scoringBreakdown Json?
+  calculatedAt     DateTime        @default(now())
+
+  tenant           Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business         Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  project          ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, businessId])
+  @@index([tenantId, projectId])
+  @@map("lead_scores")
+}
+
+model CrmActivity {
+  id          String          @id
+  tenantId    String
+  businessId  String
+  projectId   String
+  userId      String?
+  type        String
+  stage       String
+  title       String
+  notes       String?
+  createdAt   DateTime        @default(now())
+
+  tenant      Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business    Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  project     ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        TenantUser?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, businessId])
+  @@index([tenantId, projectId])
+  @@map("crm_activities")
+}
+
+model FollowUpSchedule {
+  id           String          @id
+  tenantId     String
+  businessId   String
+  projectId    String
+  scheduledFor DateTime
+  cadenceStep  Int             @default(1)
+  channel      String          @default("email")
+  status       String          @default("pending")
+  completedAt  DateTime?
+  createdAt    DateTime        @default(now())
+
+  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business     Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  project      ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, businessId])
+  @@index([tenantId, scheduledFor])
+  @@map("follow_up_schedules")
+}
+
+model PipelineRun {
+  id              String                   @id
+  tenantId        String
+  projectId       String
+  runId           String                   @unique
+  mode            String
+  status          String
+  industry        String
+  location        String
+  requestedCount  Int
+  totalDurationMs Int
+  summary         Json
+  startedAt       DateTime
+  completedAt     DateTime
+
+  tenant          Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  project         ResearchProject          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  stages          PipelineStageExecution[]
+
+  @@index([tenantId])
+  @@index([tenantId, projectId])
+  @@map("pipeline_runs")
+}
+
+model PipelineStageExecution {
+  id               String      @id
+  tenantId         String
+  pipelineRunId    String
+  stage            String
+  status           String
+  recordsProcessed Int         @default(0)
+  recordsSucceeded Int         @default(0)
+  recordsFailed    Int         @default(0)
+  recordsSkipped   Int         @default(0)
+  durationMs       Int         @default(0)
+  error            String?
+  details          Json?
+
+  tenant           Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pipelineRun      PipelineRun @relation(fields: [pipelineRunId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, pipelineRunId])
+  @@map("pipeline_stage_executions")
+}
+
+model PipelineLock {
+  id        String          @id @default(uuid())
+  tenantId  String
+  projectId String
+  lockKey   String          @unique
+  lockedBy  String
+  lockedAt  DateTime        @default(now())
+  expiresAt DateTime
+
+  tenant    Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  project   ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([expiresAt])
+  @@map("pipeline_locks")
+}
+
+// -------------------------------------------------------------
+// COMMERCIAL & AGENCY MODULES
+// -------------------------------------------------------------
 
 model BusinessProposal {
   id             String        @id @default(uuid())

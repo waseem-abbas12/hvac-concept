@@ -13,6 +13,7 @@ import {
   PlusCircle,
   ExternalLink,
   Filter,
+  ChevronRight,
 } from 'lucide-react';
 import { useProject } from '@/context/ProjectContext';
 import { repository } from '@/lib/db/repository';
@@ -128,18 +129,24 @@ export function OverviewDashboard() {
 
         <div className="flex items-center gap-2 shrink-0">
           <button
+            onClick={() => setActiveModule('lead_pipeline')}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-colors shadow-md shadow-blue-500/20"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Run Pipeline</span>
+          </button>
+          <button
+            onClick={() => setActiveModule('lead_intelligence')}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-200 hover:bg-surface-300 text-xs font-medium text-slate-200 border border-border transition-colors"
+          >
+            <span>Lead Dossier</span>
+          </button>
+          <button
             onClick={() => setActiveModule('discovery')}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-200 hover:bg-surface-300 text-xs font-medium text-slate-200 border border-border transition-colors"
           >
             <PlusCircle className="w-3.5 h-3.5" />
             <span>Add Business</span>
-          </button>
-          <button
-            onClick={() => setActiveModule('website_audit')}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-medium text-white transition-colors shadow-md shadow-blue-500/20"
-          >
-            <Globe className="w-3.5 h-3.5" />
-            <span>Audit Site</span>
           </button>
         </div>
       </div>
@@ -273,9 +280,41 @@ export function OverviewDashboard() {
         </div>
 
         {filteredBusinesses.length === 0 ? (
-          <div className="text-center py-8 text-xs text-slate-400">
-            No businesses match the selected filters.
-          </div>
+          businesses.length === 0 ? (
+            <div className="text-center py-12 px-4 rounded-xl bg-surface-50 border border-dashed border-border my-4 space-y-3">
+              <Building2 className="w-8 h-8 text-blue-400 mx-auto" />
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold text-slate-200">No Businesses in this Project Yet</h4>
+                <p className="text-xs text-slate-400 max-w-md mx-auto">
+                  Get started by importing your lead lists or launching the autonomous 10-stage research pipeline.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <button
+                  onClick={() => setActiveModule('discovery')}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg text-xs transition-all shadow-md shadow-blue-500/20"
+                >
+                  Import Leads (CSV / Discovery)
+                </button>
+                <button
+                  onClick={() => setActiveModule('lead_pipeline')}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-border font-medium rounded-lg text-xs transition-all"
+                >
+                  Open 10-Stage Pipeline
+                </button>
+                <a
+                  href="/onboarding"
+                  className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 font-medium rounded-lg text-xs transition-all"
+                >
+                  Launch Onboarding Wizard
+                </a>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-xs text-slate-400">
+              No businesses match the selected filters.
+            </div>
+          )
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -341,10 +380,10 @@ export function OverviewDashboard() {
                       </td>
                       <td className="py-3 px-3 text-right">
                         <button
-                          onClick={() => setActiveModule('research_reports')}
+                          onClick={() => setActiveModule('lead_intelligence')}
                           className="text-xs text-blue-400 hover:text-blue-300 font-medium inline-flex items-center gap-1"
                         >
-                          Report <ExternalLink className="w-3 h-3" />
+                          Dossier <ChevronRight className="w-3 h-3" />
                         </button>
                       </td>
                     </tr>

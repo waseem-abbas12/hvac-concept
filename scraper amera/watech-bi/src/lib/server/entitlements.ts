@@ -2,7 +2,7 @@ import { prisma, isDatabaseConfigured } from './db';
 import { evaluateResourceQuota, type QuotaCheckResult } from '@/lib/engines/tenantContextEngine';
 import type { TenantPlan, TenantUsage } from '@/types';
 
-const DEFAULT_PLANS: Record<string, TenantPlan> = {
+export const DEFAULT_PLANS: Record<string, TenantPlan> = {
   'plan-starter': {
     id: 'plan-starter',
     name: 'Starter Tier',
